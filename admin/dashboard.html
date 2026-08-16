@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99Shops | Admin Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Link Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            99<span>Shops</span>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-section">Overview</div>
+            <a href="dashboard.html" class="nav-link active">
+                <i data-feather="home"></i> Dashboard
+            </a>
+            
+            <div class="nav-section">Management</div>
+            <a href="products.html" class="nav-link">
+                <i data-feather="box"></i> Products
+            </a>
+            <a href="orders.html" class="nav-link">
+                <i data-feather="shopping-cart"></i> Orders
+            </a>
+            <a href="category.html" class="nav-link">
+                <i data-feather="grid"></i> Categories
+            </a>
+            
+            <div class="nav-section">Finance & Users</div>
+            <a href="wallet.html" class="nav-link">
+                <i data-feather="credit-card"></i> Wallet Requests
+            </a>
+            <a href="users.html" class="nav-link">
+                <i data-feather="users"></i> Users
+            </a>
+            
+            <div class="nav-section">System</div><a href="profile.html" class="nav-link">
+                <i data-feather="user"></i> Admin Profile
+            </a>
+            <a href="login.html" class="nav-link" style="color: var(--danger); margin-top: auto;">
+                <i data-feather="log-out"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="search-bar">
+                    <i data-feather="search"></i>
+                    <input type="text" placeholder="Search orders, users...">
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="current-date" id="current-date">--</div>
+                <button class="notification-btn">
+                    <i data-feather="bell"></i>
+                    <span class="notification-badge"></span>
+                </button>
+                <div class="admin-profile" onclick="window.location.href='profile.html'">
+                    <div class="admin-avatar">AD</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="content">
+            <div class="page-header">
+                <h1 class="page-title">Overview</h1>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Total Revenue
+                        <div class="stat-icon green"><i data-feather="dollar-sign"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-revenue">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Total Orders
+                        <div class="stat-icon blue"><i data-feather="shopping-bag"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-orders">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Today's Orders
+                        <div class="stat-icon orange"><i data-feather="clock"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-today-orders">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Total Users
+                        <div class="stat-icon purple"><i data-feather="users"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-users">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Total Products
+                        <div class="stat-icon blue"><i data-feather="box"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-products">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Pending Wallet Reqs
+                        <div class="stat-icon orange"><i data-feather="alert-circle"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-pending-wallets">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Chart -->
+            <div class="chart-section">
+                <div class="section-title">
+                    <i data-feather="bar-chart-2"></i> Orders Analytics (Last 7 Days)
+                </div>
+                <div class="chart-container">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tables Area -->
+            <div class="grid-layout split">
+                <!-- Latest Orders -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="section-title" style="margin:0;"><i data-feather="shopping-cart"></i> Latest Orders</div>
+                        <a href="orders.html" style="font-size: 13px; color: var(--accent); font-weight: 500;">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr class="skeleton-row"><td><div class="product-cell"><div class="skeleton sk-avatar"></div><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                                <tr class="skeleton-row"><td><div class="product-cell"><div class="skeleton sk-avatar"></div><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                                <tr class="skeleton-row"><td><div class="product-cell"><div class="skeleton sk-avatar"></div><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Latest Users -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="section-title" style="margin:0;"><i data-feather="users"></i> Recent Users</div>
+                        <a href="users.html" style="font-size: 13px; color: var(--accent); font-weight: 500;">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User Info</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr class="skeleton-row"><td><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                                <tr class="skeleton-row"><td><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                                <tr class="skeleton-row"><td><div><div class="skeleton sk-text"></div><div class="skeleton sk-text short"></div></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Requests Table -->
+            <div class="grid-layout">
+                <div class="table-card">
+                    <div class="table-header">
+                        <div class="section-title" style="margin:0;"><i data-feather="credit-card"></i> Latest Wallet Requests</div>
+                        <a href="wallet.html" style="font-size: 13px; color: var(--accent); font-weight: 500;">Manage All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>UTR</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wallet-table-body">
+                                <tr class="skeleton-row"><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                                <tr class="skeleton-row"><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Link Custom JavaScript -->
+<script src="auth.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

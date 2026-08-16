@@ -1,0 +1,384 @@
+<!-- users.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - 99Shops Admin</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="users.css">
+</head>
+<body>
+
+    <div class="layout">
+        <!-- Sidebar EXACTLY as Dashboard -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                99<span>Shops</span>
+            </div>
+            <nav class="nav-links">
+                <div class="nav-section">Overview</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i data-feather="home"></i> Dashboard
+                </a>
+                
+                <div class="nav-section">Management</div>
+                <a href="html/product.html" class="nav-link">
+                    <i data-feather="box"></i> Products
+                </a>
+                <a href="orders.html" class="nav-link">
+                    <i data-feather="shopping-cart"></i> Orders
+                </a>
+                <a href="category.html" class="nav-link">
+                    <i data-feather="grid"></i> Categories
+                </a>
+                
+                <div class="nav-section">Finance & Users</div>
+                <a href="wallet.html" class="nav-link">
+                    <i data-feather="credit-card"></i> Wallet Requests
+                </a>
+                <a href="users.html" class="nav-link active">
+                    <i data-feather="users"></i> Users
+                </a>
+                
+                <div class="nav-section">System</div>
+                <a href="profile.html" class="nav-link">
+                    <i data-feather="user"></i> Admin Profile
+                </a>
+                <a href="login.html" class="nav-link" style="color: var(--danger); margin-top: auto;">
+                    <i data-feather="log-out"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header EXACTLY as Dashboard (integrating Users IDs/Actions) -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <i data-feather="menu"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i data-feather="search"></i>
+                        <input type="text" id="globalSearch" placeholder="Search Name, Email, Phone...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="current-date" id="currentDateDisplay">--</div>
+                    
+                    <button class="btn btn-outline ripple" id="exportBtn" style="padding: 8px 14px; height: 36px;"><i class='bx bx-export'></i> Export CSV</button>
+                    <button class="btn btn-primary ripple" id="refreshBtn" style="padding: 8px 14px; height: 36px;"><i class='bx bx-refresh'></i> Refresh</button>
+
+                    <button class="notification-btn">
+                        <i data-feather="bell"></i>
+                        <span class="notification-badge"></span>
+                    </button>
+                    <div class="admin-profile" onclick="window.location.href='profile.html'">
+                        <div class="admin-avatar">AD</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Area -->
+            <div class="content">
+                <div class="page-header" style="margin-bottom: 24px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <h1 class="page-title">Users Management</h1>
+                        <div class="breadcrumb">
+                            <span>Admin</span> <i class='bx bx-chevron-right'></i> <span class="current">Users</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <section class="stats-grid">
+                    <div class="stat-card glass-panel hover-lift">
+                        <div class="stat-icon blue"><i class='bx bx-group'></i></div>
+                        <div class="stat-info">
+                            <h3>Total Users</h3>
+                            <p id="statTotal" class="skeleton-text">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel hover-lift">
+                        <div class="stat-icon green"><i class='bx bx-user-check'></i></div>
+                        <div class="stat-info">
+                            <h3>Active Users</h3>
+                            <p id="statActive" class="skeleton-text">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel hover-lift">
+                        <div class="stat-icon red"><i class='bx bx-user-x'></i></div>
+                        <div class="stat-info">
+                            <h3>Blocked Users</h3>
+                            <p id="statBlocked" class="skeleton-text">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel hover-lift">
+                        <div class="stat-icon purple"><i class='bx bx-user-plus'></i></div>
+                        <div class="stat-info">
+                            <h3>Today's Registrations</h3>
+                            <p id="statToday" class="skeleton-text">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel hover-lift">
+                        <div class="stat-icon teal"><i class='bx bx-wallet'></i></div>
+                        <div class="stat-info">
+                            <h3>Total Wallet Balance</h3>
+                            <p id="statWalletBalance" class="skeleton-text">$0.00</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Filter Bar -->
+                <section class="filter-section glass-panel">
+                    <div class="filter-grid">
+                        <select id="filterStatus" class="filter-input">
+                            <option value="">All Statuses</option>
+                            <option value="true">Active</option>
+                            <option value="false">Blocked</option>
+                        </select>
+                        <select id="filterRole" class="filter-input">
+                            <option value="">All Roles</option>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <select id="sortSelect" class="filter-input">
+                            <option value="newest">Sort: Newest First</option>
+                            <option value="oldest">Sort: Oldest First</option>
+                            <option value="highest_bal">Highest Wallet Balance</option>
+                            <option value="lowest_bal">Lowest Wallet Balance</option>
+                            <option value="az">Name: A-Z</option>
+                            <option value="za">Name: Z-A</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-outline ripple" id="resetFiltersBtn"><i class='bx bx-reset'></i> Reset Filters</button>
+                    </div>
+                </section>
+
+                <!-- Bulk Actions -->
+                <section class="bulk-actions glass-panel" id="bulkActions" style="display: none;">
+                    <div class="bulk-left">
+                        <i class='bx bx-check-square'></i>
+                        <span><strong id="selectedCount">0</strong> users selected</span>
+                    </div>
+                    <div class="bulk-right">
+                        <button class="btn btn-sm btn-success ripple" id="bulkUnblockBtn"><i class='bx bx-check-shield'></i> Unblock</button>
+                        <button class="btn btn-sm btn-warning ripple" id="bulkBlockBtn"><i class='bx bx-block'></i> Block</button>
+                        <button class="btn btn-sm btn-danger ripple" id="bulkDeleteBtn"><i class='bx bx-trash'></i> Delete</button>
+                    </div>
+                </section>
+
+                <!-- Table Container -->
+                <section class="table-container glass-panel">
+                    <div class="table-header">
+                        <h2 style="font-size: 16px; font-weight: 600;">User Directory</h2>
+                        <div class="table-controls">
+                            <select id="perPageSelect" class="filter-input">
+                                <option value="10">10 per page</option>
+                                <option value="25">25 per page</option>
+                                <option value="50">50 per page</option>
+                                <option value="100">100 per page</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAllCheckbox"></th>
+                                    <th>User</th>
+                                    <th>Contact Info</th>
+                                    <th>Wallet Balance</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Joined Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Loaded dynamically -->
+                            </tbody>
+                        </table>
+                        <div id="emptyState" class="empty-state" style="display: none;">
+                            <i class='bx bx-user-x empty-icon'></i>
+                            <h3>No Users Found</h3>
+                            <p>Try adjusting your search filters to find what you're looking for.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <span class="page-info">Showing <span id="pageStart">0</span>-<span id="pageEnd">0</span> of <span id="totalItemsDisplay">0</span></span>
+                        <div class="page-controls">
+                            <button class="btn-page ripple" id="prevPageBtn" disabled><i class='bx bx-chevron-left'></i></button>
+                            <div id="pageNumbers" class="page-numbers"></div>
+                            <button class="btn-page ripple" id="nextPageBtn" disabled><i class='bx bx-chevron-right'></i></button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- View User Modal -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal-content glass-panel scale-anim">
+            <div class="modal-header">
+                <h2>User Profile</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-header">
+                    <div id="viewAvatarContainer" class="view-avatar"></div>
+                    <div class="profile-title">
+                        <h3 id="viewName">-</h3>
+                        <p id="viewRole" class="role-text">-</p>
+                    </div>
+                    <div class="profile-status" id="viewStatusBadge"></div>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="detail-group">
+                        <label>User ID</label>
+                        <p id="viewId" class="code-text">-</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Registration Date</label>
+                        <p id="viewDate">-</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Email Address</label>
+                        <p id="viewEmail">-</p>
+                    </div>
+                    <div class="detail-group">
+                        <label>Phone Number</label>
+                        <p id="viewPhone">-</p>
+                    </div>
+                    <div class="detail-group full-width">
+                        <label>Wallet Balance</label>
+                        <p id="viewBalance" class="highlight-bal">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline ripple close-modal">Close</button>
+                <button class="btn btn-primary ripple" id="openEditFromViewBtn">Edit User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content glass-panel scale-anim large-modal">
+            <div class="modal-header">
+                <h2>Edit User</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="editName" class="input-field" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="editEmail" class="input-field" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="editPhone" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Image URL</label>
+                            <input type="url" id="editProfileImage" class="input-field" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select id="editRole" class="input-field" required>
+                                <option value="user">User</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Account Status</label>
+                            <select id="editStatus" class="input-field" required>
+                                <option value="true">Active</option>
+                                <option value="false">Blocked</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="wallet-modifier glass-panel">
+                        <h3><i class='bx bx-wallet'></i> Manage Wallet Balance</h3>
+                        <div class="wallet-grid">
+                            <div class="current-bal-display">
+                                <span>Current Balance</span>
+                                <strong id="editCurrentBalance">$0.00</strong>
+                            </div>
+                            <div class="wallet-action-group">
+                                <select id="walletActionType" class="input-field auto-width">
+                                    <option value="none">No Change</option>
+                                    <option value="add">Add (+)</option>
+                                    <option value="deduct">Deduct (-)</option>
+                                    <option value="set">Set Exact (=)</option>
+                                </select>
+                                <input type="number" id="walletModifyAmount" class="input-field" placeholder="Amount" step="0.01" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline ripple close-modal">Cancel</button>
+                <button class="btn btn-primary ripple" id="saveUserBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content confirm-modal glass-panel scale-anim">
+            <div class="confirm-icon" id="confirmIcon"><i class='bx bx-error-circle'></i></div>
+            <h3 id="confirmTitle">Confirm Action</h3>
+            <p id="confirmText">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline ripple close-modal">Cancel</button>
+                <button class="btn ripple" id="executeConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="popup.js"></script>
+    <script src="users.js"></script>
+    <script src="auth.js"></script>
+    
+    <script>
+        // Initialize Feather icons exactly like the Dashboard
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        
+        // Sidebar Toggle for Mobile exactly like Dashboard
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

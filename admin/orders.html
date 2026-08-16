@@ -1,0 +1,395 @@
+<!-- orders.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders Management - 99Shops Admin</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons for Sidebar Consistency[span_6](start_span)[span_6](end_span) -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="orders.css">
+</head>
+<body>
+
+<div class="layout">
+    <!-- Exact Dashboard Sidebar[span_7](start_span)[span_7](end_span) -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            99<span>Shops</span>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-section">Overview</div>
+            <a href="dashboard.html" class="nav-link">
+                <i data-feather="home"></i> Dashboard
+            </a>
+            
+            <div class="nav-section">Management</div>
+            <a href="products.html" class="nav-link">
+                <i data-feather="box"></i> Products
+            </a>
+            <!-- Active link is set to Orders -->
+            <a href="orders.html" class="nav-link active">
+                <i data-feather="shopping-cart"></i> Orders
+            </a>
+            <a href="category.html" class="nav-link">
+                <i data-feather="grid"></i> Categories
+            </a>
+            
+            <div class="nav-section">Finance & Users</div>
+            <a href="wallet.html" class="nav-link">
+                <i data-feather="credit-card"></i> Wallet Requests
+            </a>
+            <a href="users.html" class="nav-link">
+                <i data-feather="users"></i> Users
+            </a>
+            
+            <div class="nav-section">System</div>
+            <a href="profile.html" class="nav-link">
+                <i data-feather="user"></i> Admin Profile
+            </a>
+            <a href="login.html" class="nav-link" style="color: var(--danger); margin-top: auto;">
+                <i data-feather="log-out"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Top Header with Toggle Button -->
+        <header class="top-header">
+            <div class="header-left">
+                <!-- Hamburger Menu for Mobile Sidebar -->
+                <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                    <i data-feather="menu"></i>
+                </button>
+                <div>
+                    <h1>Orders Management</h1>
+                    <div class="breadcrumb">
+                        <span>Admin</span> <i class='bx bx-chevron-right'></i> <span class="current">Orders</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="globalSearch" placeholder="Search anything...">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" title="Notifications"><i class='bx bx-bell'></i></button>
+                    <div class="current-date" id="currentDateDisplay"></div>
+                    <button class="btn btn-outline" id="exportBtn"><i class='bx bx-export'></i> Export CSV</button>
+                    <button class="btn btn-primary" id="refreshBtn"><i class='bx bx-refresh'></i> Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class='bx bx-receipt'></i></div>
+                <div class="stat-info">
+                    <h3>Total Orders</h3>
+                    <p id="statTotal" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class='bx bx-time'></i></div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <p id="statPending" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon indigo"><i class='bx bx-check-shield'></i></div>
+                <div class="stat-info">
+                    <h3>Confirmed</h3>
+                    <p id="statConfirmed" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class='bx bx-package'></i></div>
+                <div class="stat-info">
+                    <h3>Shipped</h3>
+                    <p id="statShipped" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class='bx bx-check-circle'></i></div>
+                <div class="stat-info">
+                    <h3>Delivered</h3>
+                    <p id="statDelivered" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class='bx bx-x-circle'></i></div>
+                <div class="stat-info">
+                    <h3>Cancelled</h3>
+                    <p id="statCancelled" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon teal"><i class='bx bx-money'></i></div>
+                <div class="stat-info">
+                    <h3>Total Revenue</h3>
+                    <p id="statRevenue" class="skeleton-text">$0.00</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class='bx bx-calendar-star'></i></div>
+                <div class="stat-info">
+                    <h3>Today's Orders</h3>
+                    <p id="statToday" class="skeleton-text">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Bar -->
+        <section class="filter-section glass-panel">
+            <div class="filter-grid">
+                <input type="text" id="filterOrderId" placeholder="Order ID" class="filter-input">
+                <input type="text" id="filterCustomer" placeholder="Customer Name or Phone" class="filter-input">
+                <input type="text" id="filterProduct" placeholder="Product Name" class="filter-input">
+                <input type="date" id="filterDateFrom" class="filter-input" title="From Date">
+                <input type="date" id="filterDateTo" class="filter-input" title="To Date">
+                
+                <select id="filterPayment" class="filter-input">
+                    <option value="">All Payment Methods</option>
+                    <option value="Smart Balance">Smart Balance</option>
+                    <option value="UPI">UPI</option>
+                    <option value="COD">COD</option>
+                    <option value="Online">Online</option>
+                </select>
+
+                <select id="filterOrderStatus" class="filter-input">
+                    <option value="">All Order Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Refunded">Refunded</option>
+                </select>
+
+                <select id="filterDeliveryStatus" class="filter-input">
+                    <option value="">All Delivery Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Packed">Packed</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Out For Delivery">Out For Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+
+                <div class="amount-range">
+                    <input type="number" id="filterMinAmt" placeholder="Min $" class="filter-input">
+                    <span>-</span>
+                    <input type="number" id="filterMaxAmt" placeholder="Max $" class="filter-input">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-outline" id="resetFiltersBtn"><i class='bx bx-reset'></i> Reset Filters</button>
+            </div>
+        </section>
+
+        <!-- Bulk Actions -->
+        <section class="bulk-actions glass-panel" id="bulkActions" style="display: none;">
+            <div class="bulk-left">
+                <i class='bx bx-check-square'></i>
+                <span><strong id="selectedCount">0</strong> orders selected</span>
+            </div>
+            <div class="bulk-right">
+                <button class="btn btn-sm btn-success" id="bulkConfirmBtn">Confirm</button>
+                <button class="btn btn-sm btn-primary" id="bulkShipBtn">Ship</button>
+                <button class="btn btn-sm btn-teal" id="bulkDeliverBtn">Deliver</button>
+                <button class="btn btn-sm btn-warning" id="bulkCancelBtn">Cancel</button>
+                <button class="btn btn-sm btn-danger" id="bulkDeleteBtn"><i class='bx bx-trash'></i> Delete</button>
+            </div>
+        </section>
+
+        <!-- Orders Table -->
+        <section class="table-container glass-panel">
+            <div class="table-header">
+                <h2>Recent Orders</h2>
+                <div class="table-controls">
+                    <select id="sortSelect" class="filter-input">
+                        <option value="newest">Sort: Newest First</option>
+                        <option value="oldest">Sort: Oldest First</option>
+                        <option value="highest_amt">Highest Amount</option>
+                        <option value="lowest_amt">Lowest Amount</option>
+                        <option value="pending_first">Pending First</option>
+                        <option value="delivered_first">Delivered First</option>
+                    </select>
+                    <select id="perPageSelect" class="filter-input">
+                        <option value="10">10 per page</option>
+                        <option value="25">25 per page</option>
+                        <option value="50">50 per page</option>
+                        <option value="100">100 per page</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th>Order ID</th>
+                            <th>Customer Info</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Total Amount</th>
+                            <th>Payment</th>
+                            <th>Order Status</th>
+                            <th>Delivery Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- Loaded dynamically via JS -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <img src="https://illustrations.popsy.co/blue/surreal-hourglass.svg" alt="No Orders" class="empty-illustration">
+                    <h3>No Orders Found</h3>
+                    <p>Try adjusting your search filters or check back later.</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <span class="page-info">Showing <span id="pageStart">0</span>-<span id="pageEnd">0</span> of <span id="totalItemsDisplay">0</span></span>
+                <div class="page-controls">
+                    <button class="btn-page" id="prevPageBtn" disabled><i class='bx bx-chevron-left'></i></button>
+                    <div id="pageNumbers" class="page-numbers"></div>
+                    <button class="btn-page" id="nextPageBtn" disabled><i class='bx bx-chevron-right'></i></button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</div> <!-- End Layout -->
+
+<!-- Modals -->
+<!-- View Order Modal -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-content large-modal glass-panel">
+        <div class="modal-header">
+            <h2>Order Details <span id="viewOrderId" class="text-muted"></span></h2>
+            <button class="close-modal"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="order-details-grid">
+                <div class="detail-card">
+                    <h3><i class='bx bx-user'></i> Customer Details</h3>
+                    <div id="viewCustomerDetails" class="detail-content"></div>
+                </div>
+                <div class="detail-card">
+                    <h3><i class='bx bx-box'></i> Product Info</h3>
+                    <div id="viewProductDetails" class="detail-content"></div>
+                </div>
+                <div class="detail-card">
+                    <h3><i class='bx bx-credit-card'></i> Payment Summary</h3>
+                    <div id="viewPaymentDetails" class="detail-content"></div>
+                </div>
+                <div class="detail-card full-width">
+                    <h3><i class='bx bx-time-five'></i> Fulfillment Timeline</h3>
+                    <div class="timeline" id="viewTimeline"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Order Modal -->
+<div class="modal-overlay" id="updateModal">
+    <div class="modal-content glass-panel">
+        <div class="modal-header">
+            <h2>Update Order Status</h2>
+            <button class="close-modal"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="updateOrderForm">
+                <input type="hidden" id="updateOrderId">
+                <div class="form-group">
+                    <label>Order Status</label>
+                    <select id="updateOrderStatus" class="filter-input" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="Refunded">Refunded</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Delivery Status</label>
+                    <select id="updateDeliveryStatus" class="filter-input" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Packed">Packed</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Out For Delivery">Out For Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Delivery Partner (Optional)</label>
+                    <input type="text" id="updateDeliveryPartner" class="filter-input" placeholder="e.g. FedEx, BlueDart">
+                </div>
+                <div class="form-group">
+                    <label>Tracking Number (Optional)</label>
+                    <input type="text" id="updateTrackingNumber" class="filter-input" placeholder="Tracking ID">
+                </div>
+                <div class="form-group">
+                    <label>Expected Delivery Date</label>
+                    <input type="date" id="updateExpectedDate" class="filter-input">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline close-modal">Cancel</button>
+            <button class="btn btn-primary" id="saveUpdateBtn">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content confirm-modal glass-panel">
+        <div class="confirm-icon danger"><i class='bx bx-error-circle'></i></div>
+        <h3>Delete Order?</h3>
+        <p id="deleteConfirmText">Are you sure you want to delete this order? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn btn-outline close-modal">Cancel</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="popup.js"></script>
+
+<!-- Initialize Feather Icons[span_8](start_span)[span_8](end_span) & Outside click logic -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        feather.replace(); // Initialize dashboard icons for sidebar
+        
+        const sidebar = document.getElementById('sidebar');
+        // Handle outside click to close sidebar on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) {
+                sidebar.classList.remove('open');
+            }
+        });
+    });
+</script>
+<script src="auth.js"></script>
+<script src="orders.js"></script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!-- wallet.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Requests - 99Shops Admin</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- Feather Icons for Dashboard Sidebar Sync -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="wallet.css">
+</head>
+<body>
+
+<div class="layout">
+    <!-- EXACT DASHBOARD SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            99<span>Shops</span>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-section">Overview</div>
+            <a href="dashboard.html" class="nav-link">
+                <i data-feather="home"></i> Dashboard
+            </a>
+            
+            <div class="nav-section">Management</div>
+            <a href="products.html" class="nav-link">
+                <i data-feather="box"></i> Products
+            </a>
+            <a href="orders.html" class="nav-link">
+                <i data-feather="shopping-cart"></i> Orders
+            </a>
+            <a href="category.html" class="nav-link">
+                <i data-feather="grid"></i> Categories
+            </a>
+            
+            <div class="nav-section">Finance & Users</div>
+            <!-- Wallet active marker -->
+            <a href="wallet.html" class="nav-link active">
+                <i data-feather="credit-card"></i> Wallet Requests
+            </a>
+            <a href="users.html" class="nav-link">
+                <i data-feather="users"></i> Users
+            </a>
+            
+            <div class="nav-section">System</div>
+            <a href="profile.html" class="nav-link">
+                <i data-feather="user"></i> Admin Profile
+            </a>
+            <a href="login.html" class="nav-link" style="color: var(--danger); margin-top: auto;">
+                <i data-feather="log-out"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Top Header & Mobile Menu Toggle -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                    <i data-feather="menu"></i>
+                </button>
+                <div>
+                    <h1>Wallet Requests</h1>
+                    <div class="breadcrumb">
+                        <span>Admin</span> <i class='bx bx-chevron-right'></i> <span class="current">Wallet Requests</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class='bx bx-search'></i>
+                    <input type="text" id="globalSearch" placeholder="Search UTR, User ID...">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" title="Notifications"><i class='bx bx-bell'></i></button>
+                    <div class="current-date" id="currentDateDisplay"></div>
+                    <button class="btn btn-outline" id="exportBtn"><i class='bx bx-export'></i> Export CSV</button>
+                    <button class="btn btn-primary" id="refreshBtn"><i class='bx bx-refresh'></i> Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class='bx bx-time-five'></i></div>
+                <div class="stat-info">
+                    <h3>Pending Requests</h3>
+                    <p id="statPending" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class='bx bx-check-shield'></i></div>
+                <div class="stat-info">
+                    <h3>Approved Requests</h3>
+                    <p id="statApproved" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class='bx bx-x-circle'></i></div>
+                <div class="stat-info">
+                    <h3>Rejected Requests</h3>
+                    <p id="statRejected" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class='bx bx-calendar-event'></i></div>
+                <div class="stat-info">
+                    <h3>Today's Requests</h3>
+                    <p id="statTodayReqs" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class='bx bx-wallet-alt'></i></div>
+                <div class="stat-info">
+                    <h3>Today's Amount</h3>
+                    <p id="statTodayAmount" class="skeleton-text">$0.00</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon teal"><i class='bx bx-trending-up'></i></div>
+                <div class="stat-info">
+                    <h3>Total Approved Added</h3>
+                    <p id="statTotalApprovedAmt" class="skeleton-text">$0.00</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Bar -->
+        <section class="filter-section glass-panel">
+            <div class="filter-grid">
+                <select id="filterStatus" class="filter-input">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+                <select id="filterDatePreset" class="filter-input">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+                <input type="date" id="filterDateFrom" class="filter-input" title="From Date">
+                <input type="date" id="filterDateTo" class="filter-input" title="To Date">
+                <input type="text" id="filterUserId" placeholder="User ID" class="filter-input">
+                <input type="text" id="filterUTR" placeholder="UTR / TXN ID" class="filter-input">
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-outline" id="resetFiltersBtn"><i class='bx bx-reset'></i> Reset Filters</button>
+            </div>
+        </section>
+
+        <!-- Bulk Actions -->
+        <section class="bulk-actions glass-panel" id="bulkActions" style="display: none;">
+            <div class="bulk-left">
+                <i class='bx bx-check-square'></i>
+                <span><strong id="selectedCount">0</strong> requests selected</span>
+            </div>
+            <div class="bulk-right">
+                <button class="btn btn-sm btn-success" id="bulkApproveBtn"><i class='bx bx-check'></i> Approve</button>
+                <button class="btn btn-sm btn-warning" id="bulkRejectBtn"><i class='bx bx-x'></i> Reject</button>
+                <button class="btn btn-sm btn-danger" id="bulkDeleteBtn"><i class='bx bx-trash'></i> Delete</button>
+            </div>
+        </section>
+
+        <!-- Data Table -->
+        <section class="table-container glass-panel">
+            <div class="table-header">
+                <h2>Wallet Requests</h2>
+                <div class="table-controls">
+                    <select id="sortSelect" class="filter-input">
+                        <option value="newest">Sort: Newest First</option>
+                        <option value="oldest">Sort: Oldest First</option>
+                        <option value="highest_amt">Highest Amount</option>
+                        <option value="lowest_amt">Lowest Amount</option>
+                    </select>
+                    <select id="perPageSelect" class="filter-input">
+                        <option value="10">10 per page</option>
+                        <option value="25">25 per page</option>
+                        <option value="50">50 per page</option>
+                        <option value="100">100 per page</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th>Request ID</th>
+                            <th>User Details</th>
+                            <th>Amount</th>
+                            <th>UTR / TXN ID</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Content loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class='bx bx-wallet empty-icon'></i>
+                    <h3>No Wallet Requests Found</h3>
+                    <p>Try adjusting your search filters or check back later.</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <span class="page-info">Showing <span id="pageStart">0</span>-<span id="pageEnd">0</span> of <span id="totalItemsDisplay">0</span></span>
+                <div class="page-controls">
+                    <button class="btn-page" id="prevPageBtn" disabled><i class='bx bx-chevron-left'></i></button>
+                    <div id="pageNumbers" class="page-numbers"></div>
+                    <button class="btn-page" id="nextPageBtn" disabled><i class='bx bx-chevron-right'></i></button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</div> <!-- End Layout -->
+
+<!-- Modals -->
+
+<!-- View Details Modal -->
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-content glass-panel">
+        <div class="modal-header">
+            <h2>Request Details</h2>
+            <button class="close-modal"><i class='bx bx-x'></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="details-grid">
+                <div class="detail-group">
+                    <label>Request ID</label>
+                    <p id="viewReqId">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Status</label>
+                    <p id="viewStatus">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Requested Amount</label>
+                    <p id="viewAmount" class="highlight-amt">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>UTR / TXN ID</label>
+                    <p id="viewUtr">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Date Submitted</label>
+                    <p id="viewDate">-</p>
+                </div>
+            </div>
+            
+            <h3 class="section-title">User Information</h3>
+            <div class="details-grid">
+                <div class="detail-group">
+                    <label>User ID</label>
+                    <p id="viewUserId">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Name</label>
+                    <p id="viewUserName">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Email</label>
+                    <p id="viewUserEmail">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Phone</label>
+                    <p id="viewUserPhone">-</p>
+                </div>
+                <div class="detail-group">
+                    <label>Current Smart Balance</label>
+                    <p id="viewUserBalance" class="highlight-bal">-</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" id="viewModalFooter">
+            <!-- Action buttons injected via JS if pending -->
+            <button class="btn btn-outline close-modal">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Action Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-content confirm-modal glass-panel">
+        <div class="confirm-icon" id="confirmIcon"><i class='bx bx-question-mark'></i></div>
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <p id="confirmText">Are you sure you want to proceed?</p>
+        <div class="modal-actions">
+            <button class="btn btn-outline close-modal">Cancel</button>
+            <button class="btn" id="executeConfirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="popup.js"></script>
+
+<!-- Initialize Sidebar Icons and Menu Toggle -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        feather.replace(); // Initialize dashboard icons for sidebar
+        
+        const sidebar = document.getElementById('sidebar');
+        // Handle outside click to close sidebar on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) {
+                sidebar.classList.remove('open');
+            }
+        });
+    });
+</script>
+
+<script src="wallet.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>

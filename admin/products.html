@@ -1,0 +1,376 @@
+<!-- products.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products Management - 99Shops</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="products.css">
+</head>
+<body>
+
+    <!-- Exact Dashboard Sidebar Structure -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            99<span>Shops</span>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-section">Overview</div>
+            <a href="dashboard.html" class="nav-link">
+                <i class='bx bx-home'></i> Dashboard
+            </a>
+            
+            <div class="nav-section">Management</div>
+            <!-- Active link ab Products par hai -->
+            <a href="products.html" class="nav-link active">
+                <i class='bx bx-box'></i> Products
+            </a>
+            <a href="orders.html" class="nav-link">
+                <i class='bx bx-cart'></i> Orders
+            </a>
+            <a href="category.html" class="nav-link">
+                <i class='bx bx-grid-alt'></i> Categories
+            </a>
+            
+            <div class="nav-section">Finance & Users</div>
+            <a href="wallet.html" class="nav-link">
+                <i class='bx bx-credit-card'></i> Wallet Requests
+            </a>
+            <a href="users.html" class="nav-link">
+                <i class='bx bx-group'></i> Users
+            </a>
+            
+            <div class="nav-section">System</div>
+            <a href="profile.html" class="nav-link">
+                <i class='bx bx-user'></i> Admin Profile
+            </a>
+            <a href="login.html" class="nav-link" style="color: var(--danger-color); margin-top: auto;">
+                <i class='bx bx-log-out'></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Top Header - Ab Mobile ke liye Toggle Button ke sath -->
+        <header class="top-header">
+            <div class="header-left">
+                <!-- Hamburger Menu for Mobile Dashboard Sidebar -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class='bx bx-menu'></i>
+                </button>
+                <div>
+                    <h1>Products</h1>
+                    <div class="breadcrumb">
+                        <span>Admin</span> <i class='bx bx-chevron-right'></i> <span class="current">Products</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="live-counter">Live Products: <span id="liveProductCount">0</span></div>
+                <button class="btn btn-secondary" id="refreshBtn"><i class='bx bx-refresh'></i> Refresh</button>
+                <button class="btn btn-primary" id="addProductBtn"><i class='bx bx-plus'></i> Add Product</button>
+            </div>
+        </header>
+
+        <!-- Statistics Cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class='bx bx-package'></i></div>
+                <div class="stat-details">
+                    <h3>Total Products</h3>
+                    <p id="statTotal" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon success"><i class='bx bx-check-circle'></i></div>
+                <div class="stat-details">
+                    <h3>Active Products</h3>
+                    <p id="statActive" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class='bx bx-star'></i></div>
+                <div class="stat-details">
+                    <h3>Featured</h3>
+                    <p id="statFeatured" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class='bx bx-x-circle'></i></div>
+                <div class="stat-details">
+                    <h3>Out of Stock</h3>
+                    <p id="statOutOfStock" class="skeleton-text">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon alert"><i class='bx bx-error'></i></div>
+                <div class="stat-details">
+                    <h3>Low Stock</h3>
+                    <p id="statLowStock" class="skeleton-text">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Bar -->
+        <section class="filter-bar">
+            <div class="search-group">
+                <i class='bx bx-search'></i>
+                <input type="text" id="searchName" placeholder="Search by name...">
+            </div>
+            <div class="search-group">
+                <i class='bx bx-search'></i>
+                <input type="text" id="searchSlug" placeholder="Search by slug...">
+            </div>
+            <select id="filterCategory">
+                <option value="">All Categories</option>
+            </select>
+            <select id="filterBrand">
+                <option value="">All Brands</option>
+            </select>
+            <select id="filterStatus">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+            </select>
+            <select id="filterFeatured">
+                <option value="">Featured: All</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+            <select id="filterStock">
+                <option value="">Stock: All</option>
+                <option value="in_stock">In Stock</option>
+                <option value="low_stock">Low Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
+            </select>
+            <div class="price-filter">
+                <input type="number" id="filterPriceMin" placeholder="Min $">
+                <span>-</span>
+                <input type="number" id="filterPriceMax" placeholder="Max $">
+            </div>
+            <button class="btn btn-outline" id="resetFiltersBtn">Reset Filters</button>
+        </section>
+
+        <!-- Bulk Actions -->
+        <section class="bulk-actions" id="bulkActions" style="display: none;">
+            <span><span id="selectedCount">0</span> items selected</span>
+            <div class="bulk-buttons">
+                <button class="btn btn-sm btn-danger" id="bulkDeleteBtn"><i class='bx bx-trash'></i> Delete</button>
+                <button class="btn btn-sm btn-success" id="bulkActivateBtn"><i class='bx bx-check'></i> Activate</button>
+                <button class="btn btn-sm btn-secondary" id="bulkDeactivateBtn"><i class='bx bx-x'></i> Deactivate</button>
+                <button class="btn btn-sm btn-warning" id="bulkFeatureBtn"><i class='bx bx-star'></i> Feature</button>
+                <button class="btn btn-sm btn-secondary" id="bulkUnfeatureBtn"><i class='bx bx-star'></i> Unfeature</button>
+            </div>
+        </section>
+
+        <!-- Products Table -->
+        <section class="table-section">
+            <div class="table-controls">
+                <select id="sortSelect">
+                    <option value="newest">Sort: Newest First</option>
+                    <option value="oldest">Sort: Oldest First</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="rating_desc">Highest Rating</option>
+                    <option value="stock_asc">Lowest Stock</option>
+                </select>
+                <select id="perPageSelect">
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox"></th>
+                            <th>Image</th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Category</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Old Price</th>
+                            <th>Discount</th>
+                            <th>Stock</th>
+                            <th>Rating</th>
+                            <th>Status</th>
+                            <th>Featured</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- Content loaded dynamically -->
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class='bx bx-folder-open'></i>
+                    <h3>No Products Found</h3>
+                    <p>Try adjusting your filters or add a new product.</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="btn btn-outline btn-sm" id="prevPageBtn" disabled><i class='bx bx-chevron-left'></i> Prev</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button class="btn btn-outline btn-sm" id="nextPageBtn" disabled>Next <i class='bx bx-chevron-right'></i></button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals -->
+    <!-- Add/Edit Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Product</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="formProductId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="formName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Slug</label>
+                            <input type="text" id="formSlug" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea id="formDescription" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Price</label>
+                            <input type="number" id="formPrice" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Old Price</label>
+                            <input type="number" id="formOldPrice" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Discount (%)</label>
+                            <input type="number" id="formDiscount" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Brand</label>
+                            <input type="text" id="formBrand">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" id="formCategory" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock</label>
+                            <input type="number" id="formStock" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rating</label>
+                            <input type="number" id="formRating" step="0.1" min="0" max="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Thumbnail URL</label>
+                            <input type="url" id="formThumbnail">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="formStatus" required>
+                                <option value="active">Active</option>
+                                <option value="draft">Draft</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="formFeatured">
+                            <label for="formFeatured">Featured Product</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveProductBtn">Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick View Modal -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Product Details</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body" id="viewModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div class="modal-overlay" id="imageModal">
+        <div class="modal-content image-modal-content">
+            <button class="close-modal img-close"><i class='bx bx-x'></i></button>
+            <img id="previewImage" src="" alt="Preview">
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content confirm-modal-content glass-panel">
+            <div class="confirm-icon"><i class='bx bx-error-circle'></i></div>
+            <h3 id="confirmTitle">Are you sure?</h3>
+            <p id="confirmMessage">This action cannot be undone.</p>
+            <div class="modal-footer flex-center">
+                <button class="btn btn-secondary close-modal" id="cancelConfirmBtn">Cancel</button>
+                <button class="btn btn-danger" id="executeConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="popup.js"></script>
+    
+    <!-- Inline Script for Mobile Sidebar Toggle (Agar aapki products.js me ye logic nahi hai toh ise yahan chhod dijiye) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (menuToggle && sidebar) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('open');
+                });
+
+                // Baahar click karne par mobile me sidebar close ho jaye
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <script src="products.js"></script>  
+    <script src="auth.js"></script>
+</body>
+</html>

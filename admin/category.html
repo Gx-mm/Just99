@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99Shops | Categories & Banners</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="category.css">
+</head>
+<body>
+
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            99<span>Shops</span>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-section">Overview</div>
+            <a href="dashboard.html" class="nav-link">
+                <i data-feather="home"></i> Dashboard
+            </a>
+            
+            <div class="nav-section">Management</div>
+            <a href="products.html" class="nav-link">
+                <i data-feather="box"></i> Products
+            </a>
+            <a href="orders.html" class="nav-link">
+                <i data-feather="shopping-cart"></i> Orders
+            </a>
+            <a href="category.html" class="nav-link active">
+                <i data-feather="grid"></i> Categories
+            </a>
+            
+            <div class="nav-section">Finance & Users</div>
+            <a href="wallet.html" class="nav-link">
+                <i data-feather="credit-card"></i> Wallet Requests
+            </a>
+            <a href="users.html" class="nav-link">
+                <i data-feather="users"></i> Users
+            </a>
+            
+            <div class="nav-section">System</div>
+            <a href="profile.html" class="nav-link">
+                <i data-feather="user"></i> Admin Profile
+            </a>
+            <a href="login.html" class="nav-link" style="color: var(--danger); margin-top: auto;">
+                <i data-feather="log-out"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i data-feather="menu"></i>
+                </button>
+                <div class="search-bar">
+                    <i data-feather="search"></i>
+                    <input type="text" id="global-search" placeholder="Search Banner ID, URL...">
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="current-date" id="current-date">--</div>
+                <button class="notification-btn">
+                    <i data-feather="bell"></i>
+                    <span class="notification-badge"></span>
+                </button>
+                <div class="admin-profile" onclick="window.location.href='profile.html'">
+                    <div class="admin-avatar">AD</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="content">
+            <div class="page-header header-actions-container">
+                <h1 class="page-title">Banners Management</h1>
+                <div class="action-buttons">
+                    <button class="btn btn-outline" id="refresh-btn">
+                        <i data-feather="refresh-cw"></i> Refresh
+                    </button>
+                    <button class="btn btn-primary" id="add-banner-btn">
+                        <i data-feather="plus"></i> Add Banner
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        Total Banners
+                        <div class="stat-icon purple"><i data-feather="image"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-total-banners">
+                        <div class="skeleton sk-title"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Area -->
+            <div class="table-card banner-table-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Banner Preview</th>
+                                <th>Banner ID</th>
+                                <th>Created Date</th>
+                                <th>Banner URL</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="banner-table-body">
+                            <!-- Skeleton Loading -->
+                            <tr class="skeleton-row"><td><div class="skeleton sk-avatar"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text short"></div></td></tr>
+                            <tr class="skeleton-row"><td><div class="skeleton sk-avatar"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text short"></div></td></tr>
+                            <tr class="skeleton-row"><td><div class="skeleton sk-avatar"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text short"></div></td><td><div class="skeleton sk-text"></div></td><td><div class="skeleton sk-text short"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination-container" id="pagination-container">
+                    <div class="pagination-info" id="pagination-info">Showing 0-0 of 0</div>
+                    <div class="pagination-controls" id="pagination-controls">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Premium Add/Edit Banner Modal -->
+<div class="modal-overlay" id="banner-modal">
+    <div class="modal-content glass-panel scale-anim">
+        <div class="modal-header">
+            <h2 id="modal-title">Add Banner</h2>
+            <button class="close-modal"><i data-feather="x"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="banner-form">
+                <input type="hidden" id="banner-id">
+                <div class="form-group">
+                    <label>Banner URL</label>
+                    <input type="url" id="banner-url-input" class="input-field" placeholder="https://example.com/image.png" required>
+                </div>
+                <div class="form-preview" id="form-preview-container">
+                    <img id="form-image-preview" src="" alt="Preview">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline close-modal">Cancel</button>
+            <button class="btn btn-primary" id="save-banner-btn">Save Banner</button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Delete Confirmation Modal -->
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal-content confirm-modal glass-panel scale-anim">
+        <div class="confirm-icon"><i data-feather="alert-triangle"></i></div>
+        <h3>Delete Banner</h3>
+        <p>Are you sure you want to delete this banner? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn btn-outline close-modal">Cancel</button>
+            <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Image Preview Modal -->
+<div class="modal-overlay" id="preview-modal">
+    <div class="modal-content preview-modal-content glass-panel scale-anim">
+        <button class="close-modal preview-close"><i data-feather="x"></i></button>
+        <div class="preview-image-container">
+            <img id="full-preview-image" src="" alt="Full Preview">
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container (Fallback if popup.js is not present) -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="popup.js"></script>
+<script src="category.js"></script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile - 99Shops</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+
+    <div class="layout">
+        <!-- Sidebar EXACTLY as Dashboard -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                99<span>Shops</span>
+            </div>
+            <nav class="nav-links">
+                <div class="nav-section">Overview</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i data-feather="home"></i> Dashboard
+                </a>
+                
+                <div class="nav-section">Management</div>
+                <a href="html/product.html" class="nav-link">
+                    <i data-feather="box"></i> Products
+                </a>
+                <a href="orders.html" class="nav-link">
+                    <i data-feather="shopping-cart"></i> Orders
+                </a>
+                <a href="category.html" class="nav-link">
+                    <i data-feather="grid"></i> Categories
+                </a>
+                
+                <div class="nav-section">Finance & Users</div>
+                <a href="wallet.html" class="nav-link">
+                    <i data-feather="credit-card"></i> Wallet Requests
+                </a>
+                <a href="users.html" class="nav-link">
+                    <i data-feather="users"></i> Users
+                </a>
+                
+                <div class="nav-section">System</div>
+                <a href="profile.html" class="nav-link active">
+                    <i data-feather="user"></i> Admin Profile
+                </a>
+                <a href="#" class="nav-link" id="sidebarLogoutBtn" style="color: var(--danger); margin-top: auto;">
+                    <i data-feather="log-out"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Header EXACTLY as Dashboard (Integrating JS target IDs safely) -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <i data-feather="menu"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i data-feather="search"></i>
+                        <input type="text" placeholder="Search orders, users...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="current-date" id="currentDateDisplay">--</div>
+                    <button class="notification-btn">
+                        <i data-feather="bell"></i>
+                        <span class="notification-badge"></span>
+                    </button>
+                    <div class="admin-profile" onclick="window.location.href='profile.html'">
+                        <div class="admin-avatar">AD</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Area -->
+            <div class="content">
+                <div class="page-header" style="margin-bottom: 24px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <h1 class="page-title">Admin Profile</h1>
+                        <div class="breadcrumb">
+                            <span>Admin</span> <i class='bx bx-chevron-right'></i> <span class="current">Profile</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Layout -->
+                <div class="profile-layout">
+                    
+                    <!-- Left Column: Profile Card & Info -->
+                    <div class="layout-left">
+                        <!-- Profile Hero Card -->
+                        <div class="profile-hero-card glass-panel hover-lift scale-anim">
+                            <div class="hero-cover"></div>
+                            <div class="hero-content">
+                                <div class="avatar-wrapper glow-anim">
+                                    <div id="profileAvatarDisplay" class="skeleton-avatar"></div>
+                                    <span class="status-indicator" id="profileStatusDot"></span>
+                                </div>
+                                <h2 id="profileName" class="skeleton-text">Loading...</h2>
+                                <p id="profileRole" class="skeleton-text">...</p>
+                                
+                                <div class="hero-actions">
+                                    <button class="btn btn-primary ripple" id="openEditProfileBtn"><i class='bx bx-edit'></i> Edit Profile</button>
+                                    <button class="btn btn-outline ripple" id="openChangePasswordBtn"><i class='bx bx-lock-alt'></i> Password</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Information Card -->
+                        <div class="account-info-card glass-panel hover-lift slide-up">
+                            <h3 class="card-title"><i class='bx bx-info-circle'></i> Account Information</h3>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="info-label">Admin ID</span>
+                                    <span class="info-value code-text" id="infoId" class="skeleton-text">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email Address</span>
+                                    <span class="info-value" id="infoEmail">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Phone Number</span>
+                                    <span class="info-value" id="infoPhone">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Role</span>
+                                    <span class="info-value"><span class="badge badge-purple" id="infoRoleBadge">-</span></span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Account Status</span>
+                                    <span class="info-value" id="infoStatusBadge">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Created Date</span>
+                                    <span class="info-value" id="infoCreated">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Last Login</span>
+                                    <span class="info-value" id="infoLastLogin">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Stats & Timeline -->
+                    <div class="layout-right">
+                        
+                        <!-- Statistics Grid -->
+                        <div class="stats-grid slide-up" style="animation-delay: 0.1s;">
+                            <div class="stat-card glass-panel hover-lift">
+                                <div class="stat-icon blue"><i class='bx bx-box'></i></div>
+                                <div class="stat-details">
+                                    <h4>Total Products</h4>
+                                    <p id="statProducts" class="skeleton-text">0</p>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel hover-lift">
+                                <div class="stat-icon green"><i class='bx bx-receipt'></i></div>
+                                <div class="stat-details">
+                                    <h4>Total Orders</h4>
+                                    <p id="statOrders" class="skeleton-text">0</p>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel hover-lift">
+                                <div class="stat-icon teal"><i class='bx bx-money'></i></div>
+                                <div class="stat-details">
+                                    <h4>Total Revenue</h4>
+                                    <p id="statRevenue" class="skeleton-text">$0.00</p>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel hover-lift">
+                                <div class="stat-icon purple"><i class='bx bx-wallet-alt'></i></div>
+                                <div class="stat-details">
+                                    <h4>Wallet Approvals</h4>
+                                    <p id="statWallet" class="skeleton-text">0</p>
+                                </div>
+                            </div>
+                            <div class="stat-card glass-panel hover-lift full-width-stat">
+                                <div class="stat-icon orange"><i class='bx bx-group'></i></div>
+                                <div class="stat-details">
+                                    <h4>Total Registered Users</h4>
+                                    <p id="statUsers" class="skeleton-text">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity Timeline -->
+                        <div class="activity-card glass-panel hover-lift slide-up" style="animation-delay: 0.2s;">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class='bx bx-time-five'></i> Recent System Activity</h3>
+                                <button class="icon-btn ripple" id="refreshActivityBtn" title="Refresh Activity"><i class='bx bx-refresh'></i></button>
+                            </div>
+                            <div class="timeline" id="activityTimeline">
+                                <!-- Loaded Dynamically -->
+                                <div class="skeleton-block" style="height: 40px; margin-bottom: 16px;"></div>
+                                <div class="skeleton-block" style="height: 40px; margin-bottom: 16px;"></div>
+                                <div class="skeleton-block" style="height: 40px;"></div>
+                            </div>
+                            <div id="emptyActivityState" class="empty-state" style="display: none;">
+                                <i class='bx bx-ghost'></i>
+                                <p>No recent activity found.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay" id="editProfileModal">
+        <div class="modal-content glass-panel scale-anim">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <!-- Photo Upload Section -->
+                    <div class="photo-upload-section">
+                        <div class="photo-preview" id="editPhotoPreview">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <div class="photo-actions">
+                            <label class="info-label">Profile Image URL</label>
+                            <input type="url" id="editProfileImage" class="input-field" placeholder="https://example.com/photo.jpg">
+                            <small class="text-muted">Paste a direct image link to update your avatar.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="editEmail" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editPhone" class="input-field">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline ripple close-modal">Cancel</button>
+                <button class="btn btn-primary ripple" id="saveProfileBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePasswordModal">
+        <div class="modal-content glass-panel scale-anim">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <button class="close-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="currentPassword" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" class="input-field" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirmPassword" class="input-field" required minlength="6">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline ripple close-modal">Cancel</button>
+                <button class="btn btn-primary ripple" id="updatePasswordBtn">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-content confirm-modal glass-panel scale-anim">
+            <div class="confirm-icon warning"><i class='bx bx-log-out-circle'></i></div>
+            <h3>Ready to Leave?</h3>
+            <p>Are you sure you want to log out of your admin session?</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline ripple close-modal">Cancel</button>
+                <button class="btn btn-danger ripple" id="confirmLogoutBtn">Yes, Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="popup.js"></script>
+    <script src="profile.js"></script>
+    <script>
+        // Initialize Feather icons & Sidebar Toggle (Dashboard Behavior)
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+    </script>
+</body>
+</html>
