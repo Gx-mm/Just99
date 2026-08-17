@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Add Product - 99Shops</title>
+<link rel="stylesheet" href="popup.css">
+<script src="popup.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#f4f6f9;padding:15px}
+.container{max-width:700px;margin:auto}
+.card{background:#fff;padding:20px;border-radius:20px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
+h1{margin-bottom:20px;color:#0d47a1}
+label{display:block;margin-top:15px;margin-bottom:6px;font-weight:600}
+input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px}
+textarea{height:120px;resize:none}
+button{width:100%;margin-top:15px;padding:14px;border:none;border-radius:14px;background:#0d47a1;color:#fff;font-size:16px;font-weight:bold;cursor:pointer}
+.preview{display:none;width:120px;height:120px;object-fit:cover;margin-top:15px;border-radius:12px}
+.success{display:none;margin-top:15px;padding:12px;background:#d4edda;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="container"><div class="card">
+<h1>Add Product</h1>
+<form id="productForm">
+<label>Name</label><input id="name" required>
+<label>Slug</label><input id="slug" required>
+<label>Description</label><textarea id="description"></textarea>
+<label>Price</label><input id="price" type="number" required>
+<label>Old Price</label><input id="old_price" type="number">
+<label>Discount</label><input id="discount" type="number">
+<label>Brand</label><input id="brand">
+<label>Category</label><input id="category">
+<label>Stock</label><input id="stock" type="number">
+<label>Rating</label><input id="rating" type="number" step="0.1">
+<label>Product Image</label>
+<input id="image" type="file" accept="image/*">
+<img id="preview" class="preview">
+<button type="button" id="getUrlBtn">Get URL</button>
+<label>Thumbnail URL (Auto Filled)</label>
+<input id="thumbnail" readonly>
+<label>Status</label>
+<select id="status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+<label>Featured</label>
+<select id="featured"><option value="true">True</option><option value="false">False</option></select>
+<button type="submit" id="submitBtn">Add Product</button>
+<div id="successBox" class="success">Product Added Successfully ✅</div>
+</form>
+</div></div>
+
+<script>
+const SUPABASE_URL="https://xjiwwapiqszpnoqaripq.supabase.co";
+const SUPABASE_KEY="sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const imageInput=document.getElementById("image");
+const preview=document.getElementById("preview");
+const thumb=document.getElementById("thumbnail");
+let uploaded=false;
+
+document.getElementById("getUrlBtn").onclick=async()=>{
+ const file=imageInput.files[0];
+ if(!file){showPopup(
+"Image Required",
+"Please select a product image first.",
+"warning"
+);
+return;}
+ const btn=document.getElementById("getUrlBtn");
+ btn.disabled=true;btn.textContent="Uploading...";
+ preview.src=URL.createObjectURL(file);
+ preview.style.display="block";
+ const fileName=Date.now()+"-"+file.name;
+ const up=await client.storage.from("Product").upload(fileName,file);
+ if(up.error){showPopup(
+"Upload Failed",
+up.error.message,
+"error"
+);
+return;;btn.disabled=false;btn.textContent="Get URL";return;}
+ const {data}=client.storage.from("Product").getPublicUrl(fileName);
+ thumb.value=data.publicUrl;
+ uploaded=true;
+ btn.textContent="URL Generated ✅";
+};
+
+document.getElementById("productForm").onsubmit=async(e)=>{
+ e.preventDefault();
+ if(!uploaded||!thumb.value){showPopup(
+"Get URL Required",
+"Please click the Get URL button before adding the product.",
+"warning"
+);
+return;}
+ const product={
+  name:document.getElementById("name").value,
+  slug:document.getElementById("slug").value,
+  description:document.getElementById("description").value,
+  price:Number(document.getElementById("price").value),
+  old_price:Number(document.getElementById("old_price").value||0),
+  discount:Number(document.getElementById("discount").value||0),
+  brand:document.getElementById("brand").value,
+  category:document.getElementById("category").value,
+  stock:Number(document.getElementById("stock").value||0),
+  rating:Number(document.getElementById("rating").value||0),
+  thumbnail:thumb.value,
+  status:document.getElementById("status").value,
+  featured:document.getElementById("featured").value==="true"
+ };
+ const res=await client.from("products").insert([product]);
+ if(res.error){alert(res.error.message);return;}
+ document.getElementById("successBox").style.display="block";
+};
+</script>
+</body>
+</html>
