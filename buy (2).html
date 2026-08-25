@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checkout - 99Shops</title>
+    
+    <link rel="stylesheet" href="popup.css">
+    <script src="popup.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* Variables & Resets */
+        :root {
+            --primary: #0066ff;
+            --primary-hover: #0052cc;
+            --secondary: #f0f5ff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --bg-main: #f8f9fa;
+            --card-bg: #ffffff;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --border: #eef0f5;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-main); color: var(--text-main); }
+        button { border: none; background: none; cursor: pointer; outline: none; }
+
+        /* Header */
+        .glass-header { position: sticky; top: 0; z-index: 1000; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); box-shadow: var(--shadow-sm); padding: 12px 20px; }
+        .header-main { display: flex; align-items: center; max-width: 800px; margin: 0 auto; gap: 15px; }
+        .back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; color: var(--text-main); transition: 0.2s; }
+        .back-btn:hover { background: var(--border); }
+        .back-btn svg { width: 20px; height: 20px; }
+        .logo-text { font-size: 20px; font-weight: 800; color: var(--text-main); }
+
+        /* Main Layout */
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; animation: fadeIn 0.4s ease; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+        .card h2 { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+
+        /* Product Summary */
+        .product { display: flex; gap: 15px; align-items: center; background: var(--bg-main); padding: 12px; border-radius: var(--radius-md); margin-bottom: 25px; }
+        .product img { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); background: #fff; box-shadow: var(--shadow-sm); }
+        .product-info { flex: 1; }
+        .product-name { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+        .price { font-size: 18px; font-weight: 800; color: var(--primary); }
+
+        /* Form Inputs */
+        .input-group { margin-bottom: 15px; }
+        .input-row { display: flex; gap: 15px; }
+        .input-row .input-group { flex: 1; }
+        input, textarea { width: 100%; padding: 14px 16px; background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; color: var(--text-main); transition: all 0.3s ease; outline: none; }
+        input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--secondary); }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Buttons */
+        .btn { width: 100%; height: 55px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; margin-top: 10px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2); }
+        .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        /* Payment Options */
+        .payment-box { display: none; animation: slideUp 0.4s ease; }
+        .pay-option { display: flex; align-items: center; justify-content: space-between; border: 1.5px solid var(--border); padding: 18px; border-radius: var(--radius-md); margin-bottom: 15px; cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 15px; }
+        .pay-option:hover { border-color: #cbd5e1; }
+        .pay-option.selected { border-color: var(--primary); background: var(--secondary); }
+        .pay-option.disabled { opacity: 0.5; cursor: not-allowed; }
+        .pay-icon-wrap { display: flex; align-items: center; gap: 12px; }
+        .addbtn { padding: 8px 16px; border: 1px solid var(--primary); background: var(--secondary); color: var(--primary); border-radius: 20px; font-weight: 600; font-size: 13px; transition: 0.2s; margin-bottom: 20px; width: fit-content; display: inline-block; }
+        .addbtn:hover { background: var(--primary); color: #fff; }
+
+        /* UPI Section */
+        #upiSection { display: none; margin-top: 15px; padding: 20px 15px; border: 1.5px dashed var(--primary); border-radius: var(--radius-md); text-align: center; background: #f9faff; animation: slideUp 0.3s ease; }
+        #upiExactAmount { color: var(--primary); font-size: 20px; font-weight: 800; display: block; margin-bottom: 15px; }
+        #upiSection img { width: 180px; height: 180px; object-fit: contain; margin: 0 auto 15px; border-radius: 8px; box-shadow: var(--shadow-sm); display: block; background: #fff; padding: 10px; }
+        
+        /* Success Popup */
+        .success-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 9999; animation: fadeIn 0.3s ease; }
+        .success-card { background: var(--card-bg); width: 90%; max-width: 380px; padding: 35px 25px; border-radius: var(--radius-lg); text-align: center; box-shadow: var(--shadow-md); animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .checkmark { width: 80px; height: 80px; background: var(--success); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #fff; animation: scale 0.5s ease 0.2s both; }
+        .success-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+        .success-card p { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+        .success-card button { width: 100%; height: 50px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; transition: 0.3s; }
+
+        @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes scale { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 480px) { .input-row { flex-direction: column; gap: 0; } .card { padding: 20px 15px; } }
+    </style>
+</head>
+
+<body>
+
+    <header class="glass-header">
+        <div class="header-main">
+            <button class="back-btn" onclick="history.back()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <span class="logo-text">Secure Checkout</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- STEP 1: ADDRESS -->
+        <div class="card" id="step1">
+            <h2>1. Order Summary & Address</h2>
+            <div class="product">
+                <img id="productImage" src="https://via.placeholder.com/100?text=Loading..." alt="Product">
+                <div class="product-info">
+                    <div class="product-name" id="productName">Loading product details...</div>
+                    <div class="price" id="productPrice">₹0</div>
+                </div>
+            </div>
+
+            <div class="input-group"><input id="customerName" type="text" placeholder="Full Name"></div>
+            <div class="input-group"><input id="customerPhone" type="tel" placeholder="Mobile Number"></div>
+            <div class="input-group"><textarea id="address" placeholder="Complete Delivery Address"></textarea></div>
+            
+            <div class="input-row">
+                <div class="input-group"><input id="pincode" type="text" placeholder="Pincode"></div>
+                <div class="input-group"><input id="city" type="text" placeholder="City"></div>
+            </div>
+            <div class="input-group"><input id="state" type="text" placeholder="State"></div>
+
+            <button class="btn" onclick="goPayment()">Continue To Payment</button>
+        </div>
+
+        <!-- STEP 2: PAYMENT -->
+        <div class="card payment-box" id="step2">
+            <h2>2. Select Payment Method</h2>
+
+            <div class="pay-option selected" data-payment="Smart Balance">
+                <div class="pay-icon-wrap"><span style="font-size:20px;">💳</span> Smart Wallet Balance</div>
+                <div class="indicator" style="width: 20px; height: 20px; border-radius: 50%; border: 6px solid var(--primary); background: #fff;"></div>
+            </div>
+            <button class="addbtn" onclick="location.href='adb.html'">+ Add Wallet Balance</button>
+
+            <!-- UPI Payment Option Activated -->
+            <div class="pay-option" data-payment="UPI">
+                <div class="pay-icon-wrap"><span style="font-size:20px;">📱</span> UPI Payment (Auto-Verify)</div>
+                <div class="indicator" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc; background: #fff;"></div>
+            </div>
+
+            <div class="pay-option disabled cod-option" data-payment="COD">
+                <div class="pay-icon-wrap"><span style="font-size:20px;">🚚</span> Cash On Delivery</div>
+                <span style="font-size:12px; color:var(--danger); background: #fee2e2; padding: 2px 6px; border-radius: 4px;">Unavailable</span>
+            </div>
+
+            <!-- UPI Interactive Section -->
+            <div id="upiSection">
+                <p style="font-size: 14px; font-weight: 600; color: #475569;">Scan QR and Pay Exact Amount:</p>
+                <span id="upiExactAmount">₹0</span>
+                <!-- Ensure QR.png is hosted in your Vercel root -->
+                <img src="QR.png" alt="UPI QR Code">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Do not modify the amount while paying. Enter your 12-digit UTR below.</p>
+                <div class="input-group">
+                    <input id="utrInput" type="text" placeholder="Enter 12-digit UTR No." maxlength="12" style="text-align: center; font-weight: bold; letter-spacing: 1px;">
+                </div>
+            </div>
+
+            <button class="btn" onclick="placeOrder()" style="margin-top: 20px;">Confirm & Place Order</button>
+        </div>
+    </div>
+
+    <!-- SUCCESS POPUP (Used for Smart Balance) -->
+    <div id="successPopup" class="success-popup">
+        <div class="success-card">
+            <div class="checkmark">✓</div>
+            <h2>Order Placed!</h2>
+            <p>Thank you for shopping with 99Shops. Your order has been placed successfully.</p>
+            <button onclick="goOrders()">Track My Order</button>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL="https://xjiwwapiqszpnoqaripq.supabase.co";
+        const SUPABASE_KEY="sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
+        const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let selectedPayment="Smart Balance"; 
+        let currentProduct=null;
+        const params=new URLSearchParams(window.location.search);
+        const productId=params.get("id");
+
+        async function loadProduct(){
+            const {data,error}=await client.from("products").select("*").eq("id",productId).single();
+            if(error){
+                showPopup("Product Not Found", "The requested product could not be loaded.", "error");
+                return;
+            }
+            currentProduct=data;
+            const parsedThumbs = String(data.thumbnail || "").split(",").map(u => u.trim()).filter(Boolean);
+            const firstImageUrl = parsedThumbs.length > 0 ? parsedThumbs[0] : 'https://via.placeholder.com/100?text=No+Image';
+            currentProduct.singleImageUrl = firstImageUrl;
+
+            document.getElementById("productImage").src = firstImageUrl;
+            document.getElementById("productName").innerText = data.name || "";
+            document.getElementById("productPrice").innerText = "₹" + (data.price || 0);
+            
+            // Set precise read-only amount in UPI section
+            document.getElementById("upiExactAmount").innerText = "₹" + (data.price || 0);
+        }
+
+        function goPayment(){
+            if(!customerName.value || !customerPhone.value || !address.value || !city.value || !state.value || !pincode.value){
+                showPopup("Incomplete Details", "Please fill in all required fields.", "warning");
+                return;
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById("step1").style.display="none";
+            document.getElementById("step2").style.display="block";
+        }
+
+        document.querySelectorAll(".pay-option").forEach(option=>{
+            option.addEventListener("click",()=>{
+                if(option.dataset.payment==="COD"){
+                    showPopup("Coming Soon", "This payment method is currently unavailable.", "info");
+                    return;
+                }
+
+                document.querySelectorAll(".pay-option").forEach(el=>{
+                    el.classList.remove("selected");
+                    const indicator = el.querySelector('.indicator');
+                    if(indicator) indicator.style.border = "2px solid #ccc";
+                });
+
+                option.classList.add("selected");
+                const indicator = option.querySelector('.indicator');
+                if(indicator) indicator.style.border = "6px solid var(--primary)";
+                
+                selectedPayment=option.dataset.payment;
+
+                // Show/Hide UPI Details
+                if(selectedPayment === "UPI"){
+                    document.getElementById("upiSection").style.display = "block";
+                } else {
+                    document.getElementById("upiSection").style.display = "none";
+                }
+            });
+        });
+
+        async function placeOrder(){
+            if(!currentProduct){
+                showPopup("Product Not Loaded", "Please wait while the product is loading.", "error");
+                return;
+            }
+
+            const userId = localStorage.getItem("userId");
+            if(!userId){
+                showPopup("Login Required", "Please login to continue.", "error");
+                return;
+            }
+
+            // SMART BALANCE FLOW
+            if(selectedPayment === "Smart Balance"){
+                const { data:user, error:balanceError } = await client.from("users").select("smart_balance").eq("id", userId).single();
+                if(balanceError) return showPopup("Balance Error", "Unable to fetch your Smart Balance.", "error");
+
+                const balance = Number(user.smart_balance || 0);
+                const orderAmount = Number(currentProduct.price);
+
+                if(balance < orderAmount) return showPopup("Insufficient Balance", "Your Smart Balance is too low.", "warning");
+
+                const { error:deductError } = await client.from("users").update({ smart_balance: balance - orderAmount }).eq("id", userId);
+                if(deductError) return showPopup("Transaction Failed", "Unable to deduct Smart Balance.", "error");
+
+                const {error}=await client.from("orders").insert([{
+                    user_id:userId, product_id:currentProduct.id, product_name:currentProduct.name,
+                    product_image:currentProduct.singleImageUrl, quantity:1, price:currentProduct.price,
+                    total_amount:currentProduct.price, customer_name:document.getElementById("customerName").value.trim(),
+                    customer_phone:document.getElementById("customerPhone").value.trim(), address:document.getElementById("address").value.trim(),
+                    city:document.getElementById("city").value.trim(), state:document.getElementById("state").value.trim(),
+                    pincode:document.getElementById("pincode").value.trim(), payment_method:selectedPayment, order_status:"Pending"
+                }]);
+
+                if(error) return showPopup("Order Failed", error.message, "error");
+                document.getElementById("successPopup").style.display="flex";
+            } 
+            
+            // UPI VERIFICATION FLOW
+            else if (selectedPayment === "UPI") {
+                const utr = document.getElementById("utrInput").value.trim();
+                if(!utr || utr.length < 10){
+                    showPopup("Invalid UTR", "Please enter a valid UTR reference number.", "warning");
+                    return;
+                }
+
+                // Create hidden form to post directly to PHP Backend
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.action = "https://api99.site.je/process-order.php";
+
+                const fields = {
+                    user_id: userId,
+                    product_id: currentProduct.id,
+                    utr: utr,
+                    customer_name: document.getElementById("customerName").value.trim(),
+                    customer_phone: document.getElementById("customerPhone").value.trim(),
+                    address: document.getElementById("address").value.trim(),
+                    city: document.getElementById("city").value.trim(),
+                    state: document.getElementById("state").value.trim(),
+                    pincode: document.getElementById("pincode").value.trim(),
+                    payment_method: "UPI"
+                };
+
+                for (const key in fields) {
+                    const hiddenField = document.createElement("input");
+                    hiddenField.type = "hidden";
+                    hiddenField.name = key;
+                    hiddenField.value = fields[key];
+                    form.appendChild(hiddenField);
+                }
+                
+                // Show a loading popup so user doesn't double click
+                showPopup("Processing", "Please wait while we securely verify your payment with the bank...");
+                
+                document.body.appendChild(form);
+                form.submit(); // Browser will navigate to API server for processing
+            }
+        }
+
+        function goOrders(){ window.location.href="orders.html"; }
+
+        async function loadUserAddress(){
+            const userId = localStorage.getItem("userId");
+            if(!userId) return;
+            const {data,error} = await client.from("addresses").select("*").eq("user_id",userId).single();
+            if(error || !data) return;
+
+            document.getElementById("customerName").value = data.full_name || "";
+            document.getElementById("customerPhone").value = data.phone || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("state").value = data.state || "";
+            document.getElementById("pincode").value = data.pincode || "";
+        }
+        
+        loadProduct();
+        loadUserAddress();
+    </script>
+</body>
+</html>
