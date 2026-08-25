@@ -170,7 +170,7 @@
         </div>
     </div>
 
-    <!-- SUCCESS POPUP (Used for Smart Balance) -->
+    <!-- SUCCESS POPUP -->
     <div id="successPopup" class="success-popup">
         <div class="success-card">
             <div class="checkmark">✓</div>
@@ -247,32 +247,32 @@
             });
         });
 
-        async function placeOrder(){
-            if(!currentProduct){
+        async function placeOrder() {
+            if (!currentProduct) {
                 showPopup("Product Not Loaded", "Please wait while the product is loading.", "error");
                 return;
             }
 
             const userId = localStorage.getItem("userId");
-            if(!userId){
+            if (!userId) {
                 showPopup("Login Required", "Please login to continue.", "error");
                 return;
             }
 
-            // SMART BALANCE FLOW
-            if(selectedPayment === "Smart Balance"){
+            // --- SMART BALANCE FLOW ---
+            if (selectedPayment === "Smart Balance") {
                 const { data:user, error:balanceError } = await client.from("users").select("smart_balance").eq("id", userId).single();
-                if(balanceError) return showPopup("Balance Error", "Unable to fetch your Smart Balance.", "error");
+                if (balanceError) return showPopup("Balance Error", "Unable to fetch your Smart Balance.", "error");
 
                 const balance = Number(user.smart_balance || 0);
                 const orderAmount = Number(currentProduct.price);
 
-                if(balance < orderAmount) return showPopup("Insufficient Balance", "Your Smart Balance is too low.", "warning");
+                if (balance < orderAmount) return showPopup("Insufficient Balance", "Your Smart Balance is too low.", "warning");
 
                 const { error:deductError } = await client.from("users").update({ smart_balance: balance - orderAmount }).eq("id", userId);
-                if(deductError) return showPopup("Transaction Failed", "Unable to deduct Smart Balance.", "error");
+                if (deductError) return showPopup("Transaction Failed", "Unable to deduct Smart Balance.", "error");
 
-                const {error}=await client.from("orders").insert([{
+                const {error} = await client.from("orders").insert([{
                     user_id:userId, product_id:currentProduct.id, product_name:currentProduct.name,
                     product_image:currentProduct.singleImageUrl, quantity:1, price:currentProduct.price,
                     total_amount:currentProduct.price, customer_name:document.getElementById("customerName").value.trim(),
@@ -281,24 +281,20 @@
                     pincode:document.getElementById("pincode").value.trim(), payment_method:selectedPayment, order_status:"Pending"
                 }]);
 
-                if(error) return showPopup("Order Failed", error.message, "error");
+                if (error) return showPopup("Order Failed", error.message, "error");
                 document.getElementById("successPopup").style.display="flex";
             } 
             
-            // UPI VERIFICATION FLOW
+            // --- UPI VERIFICATION FLOW (FIXED AJAX CALL) ---
             else if (selectedPayment === "UPI") {
                 const utr = document.getElementById("utrInput").value.trim();
-                if(!utr || utr.length < 10){
+                if (!utr || utr.length < 10) {
                     showPopup("Invalid UTR", "Please enter a valid UTR reference number.", "warning");
                     return;
                 }
 
-                // Create hidden form to post directly to PHP Backend
-                const form = document.createElement("form");
-                form.method = "POST";
-                form.action = "https://api99.site.je/process-order.php";
-
-                const fields = {
+                // 1. Build the data payload
+                const payload = {
                     user_id: userId,
                     product_id: currentProduct.id,
                     utr: utr,
@@ -311,40 +307,36 @@
                     payment_method: "UPI"
                 };
 
-                for (const key in fields) {
-                    const hiddenField = document.createElement("input");
-                    hiddenField.type = "hidden";
-                    hiddenField.name = key;
-                    hiddenField.value = fields[key];
-                    form.appendChild(hiddenField);
+                // 2. Show loading popup so user stays on the page
+                showPopup("Processing", "Please wait while we securely verify your payment with BharatPe...", "info");
+                
+                // 3. Send API request securely in the background
+                try {
+                    const response = await fetch("https://api99.site.je/process-order.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    // 4. Handle success or failure seamlessly
+                    if (result.status === true) {
+                        // If backend verified it successfully, show the final success popup
+                        document.getElementById("successPopup").style.display = "flex";
+                    } else {
+                        // If it failed (e.g. Invalid UTR, Duplicate, or Mismatch), show error in popup
+                        showPopup("Verification Failed", result.message, "error");
+                    }
+                } catch (error) {
+                    showPopup("Network Error", "Unable to connect to the verification server. Please try again.", "error");
                 }
-                
-                // Show a loading popup so user doesn't double click
-                showPopup("Processing", "Please wait while we securely verify your payment with the bank...");
-                
-                document.body.appendChild(form);
-                form.submit(); // Browser will navigate to API server for processing
             }
         }
 
         function goOrders(){ window.location.href="orders.html"; }
 
         async function loadUserAddress(){
-            const userId = localStorage.getItem("userId");
-            if(!userId) return;
-            const {data,error} = await client.from("addresses").select("*").eq("user_id",userId).single();
-            if(error || !data) return;
-
-            document.getElementById("customerName").value = data.full_name || "";
-            document.getElementById("customerPhone").value = data.phone || "";
-            document.getElementById("address").value = data.address || "";
-            document.getElementById("city").value = data.city || "";
-            document.getElementById("state").value = data.state || "";
-            document.getElementById("pincode").value = data.pincode || "";
-        }
-        
-        loadProduct();
-        loadUserAddress();
-    </script>
-</body>
-</html>
+            const userId = localStorage.getItem("u
