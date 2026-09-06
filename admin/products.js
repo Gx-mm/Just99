@@ -24,6 +24,13 @@
         }
     };
 
+    // Helper: Multiple URLs me se first URL nikalne ke liye
+    function getFirstImageUrl(urlStr, placeholder = 'https://via.placeholder.com/40') {
+        if (!urlStr || typeof urlStr !== 'string') return placeholder;
+        const urls = urlStr.split(',').map(u => u.trim()).filter(Boolean);
+        return urls.length > 0 ? urls[0] : placeholder;
+    }
+
     // ==========================================
     // State Management
     // ==========================================
@@ -155,7 +162,6 @@
 
             const results = await Promise.all(queries);
             
-            // Checking for errors in promises
             for(let res of results) {
                 if (res.error) throw res.error;
             }
@@ -208,7 +214,6 @@
     function buildQuery() {
         let query = supabaseClient.from('products').select('*', { count: 'exact' });
 
-        // Apply Filters
         if (state.filters.name) query = query.ilike('name', `%${state.filters.name}%`);
         if (state.filters.slug) query = query.ilike('slug', `%${state.filters.slug}%`);
         if (state.filters.category) query = query.eq('category', state.filters.category);
@@ -223,7 +228,6 @@
         if (state.filters.stock === 'out_of_stock') query = query.eq('stock', 0);
         if (state.filters.stock === 'low_stock') query = query.gt('stock', 0).lte('stock', 5);
 
-        // Apply Sorting
         switch (state.sort) {
             case 'newest': query = query.order('created_at', { ascending: false }); break;
             case 'oldest': query = query.order('created_at', { ascending: true }); break;
@@ -234,7 +238,6 @@
             default: query = query.order('created_at', { ascending: false });
         }
 
-        // Apply Pagination
         const from = (state.page - 1) * state.perPage;
         const to = from + state.perPage - 1;
         query = query.range(from, to);
@@ -311,10 +314,10 @@
 
         state.products.forEach(product => {
             const tr = document.createElement('tr');
-            
             const isChecked = state.selectedIds.has(product.id) ? 'checked' : '';
             
-            const thumbUrl = product.thumbnail || 'https://via.placeholder.com/40';
+            // Fix: Sirf Pehli Image fetch hogi
+            const thumbUrl = getFirstImageUrl(product.thumbnail, 'https://via.placeholder.com/40');
             const statusClass = `status-${(product.status || 'draft').toLowerCase()}`;
             const isFeatured = product.featured ? `<i class='bx bxs-star featured-badge'></i>` : `<i class='bx bx-star unfeatured-badge'></i>`;
             
@@ -399,7 +402,6 @@
     // Event Listeners Setup
     // ==========================================
     function attachEventListeners() {
-        // Debounced search
         const debounceSearch = () => {
             clearTimeout(state.debounceTimer);
             state.debounceTimer = setTimeout(() => {
@@ -422,7 +424,6 @@
             });
         }
 
-        // Dropdown filters
         const dropdowns = ['filterCategory', 'filterBrand', 'filterStatus', 'filterFeatured', 'filterStock'];
         dropdowns.forEach(id => {
             if (els[id]) {
@@ -436,7 +437,6 @@
             }
         });
 
-        // Price filters
         if (els.filterPriceMin) {
             els.filterPriceMin.addEventListener('change', (e) => {
                 state.filters.priceMin = e.target.value;
@@ -451,7 +451,7 @@
                 fetchProducts();
             });
         }
-        // Reset
+
         if (els.resetFiltersBtn) {
             els.resetFiltersBtn.addEventListener('click', () => {
                 state.filters = { name: '', slug: '', category: '', brand: '', status: '', featured: '', stock: '', priceMin: '', priceMax: '' };
@@ -461,7 +461,6 @@
             });
         }
 
-        // Sorting & Pagination settings
         if (els.sortSelect) {
             els.sortSelect.addEventListener('change', (e) => {
                 state.sort = e.target.value;
@@ -484,7 +483,6 @@
         if (els.refreshBtn) els.refreshBtn.addEventListener('click', () => { fetchStats(); fetchProducts(); });
         if (els.addProductBtn) els.addProductBtn.addEventListener('click', openAddModal);
 
-        // Bulk Selection
         if (els.selectAllCheckbox) {
             els.selectAllCheckbox.addEventListener('change', (e) => {
                 const checked = e.target.checked;
@@ -499,14 +497,12 @@
             });
         }
 
-        // Bulk Action Buttons
         if (els.bulkDeleteBtn) els.bulkDeleteBtn.addEventListener('click', () => requestConfirm('bulkDelete', 'Delete Selected Products', 'Are you sure you want to delete the selected products?'));
         if (els.bulkActivateBtn) els.bulkActivateBtn.addEventListener('click', () => processBulkAction('activate'));
         if (els.bulkDeactivateBtn) els.bulkDeactivateBtn.addEventListener('click', () => processBulkAction('deactivate'));
         if (els.bulkFeatureBtn) els.bulkFeatureBtn.addEventListener('click', () => processBulkAction('feature'));
         if (els.bulkUnfeatureBtn) els.bulkUnfeatureBtn.addEventListener('click', () => processBulkAction('unfeature'));
 
-        // Modals Close handlers
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const overlay = e.target.closest('.modal-overlay');
@@ -514,7 +510,6 @@
             });
         });
 
-        // Form Submission
         if (els.saveProductBtn) {
             els.saveProductBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -526,7 +521,6 @@
             });
         }
 
-        // Confirm Modal execution
         if (els.executeConfirmBtn) {
             els.executeConfirmBtn.addEventListener('click', executeConfirmAction);
         }
@@ -540,7 +534,6 @@
                 else state.selectedIds.delete(id);
                 updateBulkActionsVisibility();
                 
-                // Update selectAll state
                 if (els.selectAllCheckbox && document.querySelectorAll('.row-checkbox:not(:checked)').length === 0) {
                     els.selectAllCheckbox.checked = true;
                 } else if (els.selectAllCheckbox) {
@@ -651,10 +644,33 @@
         if (!product || !els.viewModalBody || !els.viewModal) return;
 
         const date = product.created_at ? new Date(product.created_at).toLocaleString() : 'N/A';
+        
+        // All images array
+        const allImages = (product.thumbnail || '')
+            .split(',')
+            .map(u => u.trim())
+            .filter(Boolean);
+            
+        const mainImage = allImages.length > 0 ? allImages[0] : 'https://via.placeholder.com/150';
+
+        // Thumbnails list if multiple images exist
+        let thumbnailsHtml = '';
+        if (allImages.length > 1) {
+            thumbnailsHtml = `
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                    ${allImages.map(img => `
+                        <img src="${img}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; cursor: pointer;" onclick="document.getElementById('quickViewMainImg').src='${img}'">
+                    `).join('')}
+                </div>
+            `;
+        }
 
         els.viewModalBody.innerHTML = `
             <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                <img src="${product.thumbnail || 'https://via.placeholder.com/150'}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">
+                <div>
+                    <img id="quickViewMainImg" src="${mainImage}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">
+                    ${thumbnailsHtml}
+                </div>
                 <div>
                     <h3 style="font-size: 24px; margin-bottom: 8px;">${product.name}</h3>
                     <p style="color: var(--text-muted); margin-bottom: 8px;">Slug: ${product.slug}</p>
@@ -676,8 +692,8 @@
             </div>
         `;
         els.viewModal.classList.add('active');
-    }
-    // ==========================================
+            }
+                   // ==========================================
     // Confirmation Modal Logic
     // ==========================================
     function requestConfirm(type, title, message, id = null) {
