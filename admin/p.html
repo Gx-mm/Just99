@@ -8,110 +8,354 @@
 <script src="popup.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:#f4f6f9;padding:15px}
-.container{max-width:700px;margin:auto}
-.card{background:#fff;padding:20px;border-radius:20px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
-h1{margin-bottom:20px;color:#0d47a1}
-label{display:block;margin-top:15px;margin-bottom:6px;font-weight:600}
-input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px}
-textarea{height:120px;resize:none}
-button{width:100%;margin-top:15px;padding:14px;border:none;border-radius:14px;background:#0d47a1;color:#fff;font-size:16px;font-weight:bold;cursor:pointer}
-.preview{display:none;width:120px;height:120px;object-fit:cover;margin-top:15px;border-radius:12px}
-.success{display:none;margin-top:15px;padding:12px;background:#d4edda;border-radius:12px}
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  body { background: var(--bg); padding: 30px 15px; color: var(--text); }
+  
+  .container { max-width: 760px; margin: auto; }
+  .card { 
+    background: var(--card-bg); 
+    padding: 32px; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 30px -5px rgba(0,0,0,0.06); 
+    border: 1px solid var(--border);
+  }
+  
+  h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 24px; }
+  
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .full-width { grid-column: span 2; }
+  
+  label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  input, textarea, select { 
+    width: 100%; 
+    padding: 12px 14px; 
+    border: 1.5px solid var(--border); 
+    border-radius: 10px; 
+    font-size: 14px; 
+    color: var(--text); 
+    outline: none;
+    transition: all 0.2s ease;
+    background: #fff;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  textarea { height: 100px; resize: vertical; }
+
+  .upload-box {
+    background: #f1f5f9;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1.5px dashed #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+  }
+  .thumb-preview {
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #cbd5e1;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+  }
+
+  button { 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-secondary { background: #0f172a; color: #fff; display: none; }
+  .btn-secondary:hover { background: #334155; }
+
+  .btn-submit {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 16px;
+  }
+  .btn-submit:hover { background: #1e293b; }
+
+  .badge-count {
+    display: inline-block;
+    font-size: 12px;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 6px;
+  }
+
+  .success { 
+    display: none; 
+    margin-top: 16px; 
+    padding: 14px; 
+    background: #dcfce7; 
+    color: #166534; 
+    border-radius: 10px; 
+    font-weight: 500;
+    text-align: center; 
+  }
 </style>
 </head>
 <body>
-<div class="container"><div class="card">
-<h1>Add Product</h1>
-<form id="productForm">
-<label>Name</label><input id="name" required>
-<label>Slug</label><input id="slug" required>
-<label>Description</label><textarea id="description"></textarea>
-<label>Price</label><input id="price" type="number" required>
-<label>Old Price</label><input id="old_price" type="number">
-<label>Discount</label><input id="discount" type="number">
-<label>Brand</label><input id="brand">
-<label>Category</label><input id="category">
-<label>Stock</label><input id="stock" type="number">
-<label>Rating</label><input id="rating" type="number" step="0.1">
-<label>Product Image</label>
-<input id="image" type="file" accept="image/*">
-<img id="preview" class="preview">
-<button type="button" id="getUrlBtn">Get URL</button>
-<label>Thumbnail URL (Auto Filled)</label>
-<input id="thumbnail" readonly>
-<label>Status</label>
-<select id="status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
-<label>Featured</label>
-<select id="featured"><option value="true">True</option><option value="false">False</option></select>
-<button type="submit" id="submitBtn">Add Product</button>
-<div id="successBox" class="success">Product Added Successfully ✅</div>
-</form>
-</div></div>
+<div class="container">
+  <div class="card">
+    <h1>Add Product</h1>
+    <form id="productForm">
+      <div class="form-grid">
+        <div class="full-width">
+          <label>Product Name</label>
+          <input id="name" placeholder="e.g. Cotton Casual Shirt" required>
+        </div>
+
+        <div>
+          <label>Slug</label>
+          <input id="slug" placeholder="cotton-casual-shirt" required>
+        </div>
+
+        <div>
+          <label>Brand</label>
+          <input id="brand" placeholder="Brand Name">
+        </div>
+
+        <div class="full-width">
+          <label>Description</label>
+          <textarea id="description" placeholder="Enter product specifications..."></textarea>
+        </div>
+
+        <div>
+          <label>Price (₹)</label>
+          <input id="price" type="number" required>
+        </div>
+
+        <div>
+          <label>Old Price (₹)</label>
+          <input id="old_price" type="number">
+        </div>
+
+        <div>
+          <label>Discount (%)</label>
+          <input id="discount" type="number">
+        </div>
+
+        <div>
+          <label>Category</label>
+          <input id="category" placeholder="e.g. Clothing">
+        </div>
+
+        <div>
+          <label>Stock</label>
+          <input id="stock" type="number" placeholder="Available units">
+        </div>
+
+        <div>
+          <label>Rating</label>
+          <input id="rating" type="number" step="0.1" placeholder="4.5">
+        </div>
+
+        <div class="full-width">
+          <label>Product Images <span class="badge-count" id="imageCountBadge">0/20 Added</span></label>
+          <div class="upload-box">
+            <input id="image" type="file" accept="image/*">
+            <div class="btn-group">
+              <button type="button" id="getUrlBtn" class="btn-primary">Get URL</button>
+              <button type="button" id="addNewBtn" class="btn-secondary">+ Add New Image</button>
+            </div>
+            <div id="previewContainer" class="preview-container"></div>
+          </div>
+        </div>
+
+        <div class="full-width">
+          <label>Thumbnail URLs (Auto-Filled, Comma Separated)</label>
+          <textarea id="thumbnail" placeholder="URLs will appear here separated by comma..." readonly></textarea>
+        </div>
+
+        <div>
+          <label>Status</label>
+          <select id="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Featured</label>
+          <select id="featured">
+            <option value="true">True</option>
+            <option value="false" selected>False</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-submit">Add Product</button>
+      <div id="successBox" class="success">Product Added Successfully! ✅</div>
+    </form>
+  </div>
+</div>
 
 <script>
-const SUPABASE_URL="https://xjiwwapiqszpnoqaripq.supabase.co";
-const SUPABASE_KEY="sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
-const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const SUPABASE_URL = "https://xjiwwapiqszpnoqaripq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
+const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const imageInput=document.getElementById("image");
-const preview=document.getElementById("preview");
-const thumb=document.getElementById("thumbnail");
-let uploaded=false;
+const imageInput = document.getElementById("image");
+const thumb = document.getElementById("thumbnail");
+const getUrlBtn = document.getElementById("getUrlBtn");
+const addNewBtn = document.getElementById("addNewBtn");
+const previewContainer = document.getElementById("previewContainer");
+const badge = document.getElementById("imageCountBadge");
 
-document.getElementById("getUrlBtn").onclick=async()=>{
- const file=imageInput.files[0];
- if(!file){showPopup(
-"Image Required",
-"Please select a product image first.",
-"warning"
-);
-return;}
- const btn=document.getElementById("getUrlBtn");
- btn.disabled=true;btn.textContent="Uploading...";
- preview.src=URL.createObjectURL(file);
- preview.style.display="block";
- const fileName=Date.now()+"-"+file.name;
- const up=await client.storage.from("Product").upload(fileName,file);
- if(up.error){showPopup(
-"Upload Failed",
-up.error.message,
-"error"
-);
-return;;btn.disabled=false;btn.textContent="Get URL";return;}
- const {data}=client.storage.from("Product").getPublicUrl(fileName);
- thumb.value=data.publicUrl;
- uploaded=true;
- btn.textContent="URL Generated ✅";
+let uploadedUrls = [];
+const MAX_IMAGES = 20;
+
+// Get URL Handler
+getUrlBtn.onclick = async () => {
+  const file = imageInput.files[0];
+  if (!file) {
+    if (typeof showPopup === "function") {
+      showPopup("Image Required", "Please select an image file first.", "warning");
+    } else {
+      alert("Please select an image file first.");
+    }
+    return;
+  }
+
+  if (uploadedUrls.length >= MAX_IMAGES) {
+    alert("Maximum 20 images limit reached!");
+    return;
+  }
+
+  getUrlBtn.disabled = true;
+  getUrlBtn.textContent = "Uploading...";
+
+  try {
+    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '_')}`;
+    const up = await client.storage.from("Product").upload(fileName, file);
+
+    if (up.error) {
+      alert("Upload Failed: " + up.error.message);
+      getUrlBtn.disabled = false;
+      getUrlBtn.textContent = "Get URL";
+      return;
+    }
+
+    const { data } = client.storage.from("Product").getPublicUrl(fileName);
+    const publicUrl = data.publicUrl;
+
+    uploadedUrls.push(publicUrl);
+    thumb.value = uploadedUrls.join(", ");
+
+    // Create small preview
+    const imgTag = document.createElement("img");
+    imgTag.src = publicUrl;
+    imgTag.className = "thumb-preview";
+    previewContainer.appendChild(imgTag);
+
+    // Update count badge
+    badge.textContent = `${uploadedUrls.length}/${MAX_IMAGES} Added`;
+
+    getUrlBtn.textContent = "Uploaded ✅";
+    getUrlBtn.style.display = "none";
+    addNewBtn.style.display = "inline-block";
+  } catch (err) {
+    alert("Error: " + err.message);
+    getUrlBtn.disabled = false;
+    getUrlBtn.textContent = "Get URL";
+  }
 };
 
-document.getElementById("productForm").onsubmit=async(e)=>{
- e.preventDefault();
- if(!uploaded||!thumb.value){showPopup(
-"Get URL Required",
-"Please click the Get URL button before adding the product.",
-"warning"
-);
-return;}
- const product={
-  name:document.getElementById("name").value,
-  slug:document.getElementById("slug").value,
-  description:document.getElementById("description").value,
-  price:Number(document.getElementById("price").value),
-  old_price:Number(document.getElementById("old_price").value||0),
-  discount:Number(document.getElementById("discount").value||0),
-  brand:document.getElementById("brand").value,
-  category:document.getElementById("category").value,
-  stock:Number(document.getElementById("stock").value||0),
-  rating:Number(document.getElementById("rating").value||0),
-  thumbnail:thumb.value,
-  status:document.getElementById("status").value,
-  featured:document.getElementById("featured").value==="true"
- };
- const res=await client.from("products").insert([product]);
- if(res.error){alert(res.error.message);return;}
- document.getElementById("successBox").style.display="block";
+// Add New Button Click Handler
+addNewBtn.onclick = () => {
+  if (uploadedUrls.length >= MAX_IMAGES) {
+    alert("You have reached the maximum limit of 20 images.");
+    return;
+  }
+  imageInput.value = "";
+  getUrlBtn.disabled = false;
+  getUrlBtn.textContent = "Get URL";
+  getUrlBtn.style.display = "inline-block";
+  addNewBtn.style.display = "none";
+};
+
+// Form Submit Handler
+document.getElementById("productForm").onsubmit = async (e) => {
+  e.preventDefault();
+
+  if (uploadedUrls.length === 0) {
+    if (typeof showPopup === "function") {
+      showPopup("Image Required", "Please upload at least one image.", "warning");
+    } else {
+      alert("Please upload at least one image.");
+    }
+    return;
+  }
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Saving Product...";
+
+  const product = {
+    name: document.getElementById("name").value,
+    slug: document.getElementById("slug").value,
+    description: document.getElementById("description").value,
+    price: Number(document.getElementById("price").value),
+    old_price: Number(document.getElementById("old_price").value || 0),
+    discount: Number(document.getElementById("discount").value || 0),
+    brand: document.getElementById("brand").value,
+    category: document.getElementById("category").value,
+    stock: Number(document.getElementById("stock").value || 0),
+    rating: Number(document.getElementById("rating").value || 0),
+    thumbnail: thumb.value, // Stores "url1, url2, url3"
+    status: document.getElementById("status").value,
+    featured: document.getElementById("featured").value === "true"
+  };
+
+  const res = await client.from("products").insert([product]);
+  
+  if (res.error) {
+    alert(res.error.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Add Product";
+    return;
+  }
+
+  document.getElementById("successBox").style.display = "block";
+  submitBtn.textContent = "Product Added!";
 };
 </script>
 </body>
