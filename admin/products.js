@@ -481,7 +481,12 @@
         if (els.nextPageBtn) els.nextPageBtn.addEventListener('click', () => { state.page++; fetchProducts(); });
         
         if (els.refreshBtn) els.refreshBtn.addEventListener('click', () => { fetchStats(); fetchProducts(); });
-        if (els.addProductBtn) els.addProductBtn.addEventListener('click', openAddModal);
+        if (els.addProductBtn) {
+    els.addProductBtn.addEventListener('click', () => {
+        window.location.href = 'p.html';
+    });
+        }
+        
 
         if (els.selectAllCheckbox) {
             els.selectAllCheckbox.addEventListener('change', (e) => {
