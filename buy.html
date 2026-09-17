@@ -64,6 +64,7 @@
         .btn { width: 100%; height: 55px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; margin-top: 10px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.2); }
         .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* Payment Options */
         .payment-box { display: none; animation: slideUp 0.4s ease; }
@@ -143,9 +144,9 @@
             </div>
             <button class="addbtn" onclick="location.href='adb.html'">+ Add Wallet Balance</button>
 
-            <!-- UPI Payment Option Activated -->
+            <!-- UPI Payment Option -->
             <div class="pay-option" data-payment="UPI">
-                <div class="pay-icon-wrap"><span style="font-size:20px;">📱</span> UPI Payment (Auto-Verify)</div>
+                <div class="pay-icon-wrap"><span style="font-size:20px;">📱</span> Scan QR & Pay (UPI)</div>
                 <div class="indicator" style="width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc; background: #fff;"></div>
             </div>
 
@@ -158,15 +159,14 @@
             <div id="upiSection">
                 <p style="font-size: 14px; font-weight: 600; color: #475569;">Scan QR and Pay Exact Amount:</p>
                 <span id="upiExactAmount">₹0</span>
-                <!-- Ensure QR.png is hosted in your Vercel root -->
                 <img src="QR.png" alt="UPI QR Code">
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Do not modify the amount while paying. Enter your 12-digit UTR below.</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">After payment, enter your 12-digit UTR below to submit your order request.</p>
                 <div class="input-group">
                     <input id="utrInput" type="text" placeholder="Enter 12-digit UTR No." maxlength="12" style="text-align: center; font-weight: bold; letter-spacing: 1px;">
                 </div>
             </div>
 
-            <button class="btn" onclick="placeOrder()" style="margin-top: 20px;">Confirm & Place Order</button>
+            <button class="btn" id="placeOrderBtn" onclick="placeOrder()" style="margin-top: 20px;">Confirm & Place Order</button>
         </div>
     </div>
 
@@ -174,29 +174,35 @@
     <div id="successPopup" class="success-popup">
         <div class="success-card">
             <div class="checkmark">✓</div>
-            <h2>Order Placed!</h2>
-            <p>Thank you for shopping with 99Shops. Your order has been placed successfully.</p>
+            <h2 id="successHeading">Order Placed!</h2>
+            <p id="successDesc">Thank you for shopping with 99Shops. Your order has been placed successfully.</p>
             <button onclick="goOrders()">Track My Order</button>
         </div>
     </div>
 
     <script>
-        const SUPABASE_URL="https://xjiwwapiqszpnoqaripq.supabase.co";
-        const SUPABASE_KEY="sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
-        const client=window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = "https://xjiwwapiqszpnoqaripq.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_TJQTU1yv270qrVAEW6Ygwg_HxRtmCTe";
+        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let selectedPayment="Smart Balance"; 
-        let currentProduct=null;
-        const params=new URLSearchParams(window.location.search);
-        const productId=params.get("id");
+        let selectedPayment = "Smart Balance"; 
+        let currentProduct = null;
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get("id");
 
-        async function loadProduct(){
-            const {data,error}=await client.from("products").select("*").eq("id",productId).single();
-            if(error){
+        async function loadProduct() {
+            if (!productId) {
+                showPopup("Missing Product", "No product selected to purchase.", "error");
+                return;
+            }
+
+            const { data, error } = await client.from("products").select("*").eq("id", productId).single();
+            if (error || !data) {
                 showPopup("Product Not Found", "The requested product could not be loaded.", "error");
                 return;
             }
-            currentProduct=data;
+            
+            currentProduct = data;
             const parsedThumbs = String(data.thumbnail || "").split(",").map(u => u.trim()).filter(Boolean);
             const firstImageUrl = parsedThumbs.length > 0 ? parsedThumbs[0] : 'https://via.placeholder.com/100?text=No+Image';
             currentProduct.singleImageUrl = firstImageUrl;
@@ -205,41 +211,47 @@
             document.getElementById("productName").innerText = data.name || "";
             document.getElementById("productPrice").innerText = "₹" + (data.price || 0);
             
-            // Set precise read-only amount in UPI section
             document.getElementById("upiExactAmount").innerText = "₹" + (data.price || 0);
         }
 
-        function goPayment(){
-            if(!customerName.value || !customerPhone.value || !address.value || !city.value || !state.value || !pincode.value){
-                showPopup("Incomplete Details", "Please fill in all required fields.", "warning");
+        function goPayment() {
+            const name = document.getElementById("customerName").value.trim();
+            const phone = document.getElementById("customerPhone").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const city = document.getElementById("city").value.trim();
+            const state = document.getElementById("state").value.trim();
+            const pincode = document.getElementById("pincode").value.trim();
+
+            if (!name || !phone || !address || !city || !state || !pincode) {
+                showPopup("Incomplete Details", "Please fill in all required address fields.", "warning");
                 return;
             }
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            document.getElementById("step1").style.display="none";
-            document.getElementById("step2").style.display="block";
+            document.getElementById("step1").style.display = "none";
+            document.getElementById("step2").style.display = "block";
         }
 
-        document.querySelectorAll(".pay-option").forEach(option=>{
-            option.addEventListener("click",()=>{
-                if(option.dataset.payment==="COD"){
+        document.querySelectorAll(".pay-option").forEach(option => {
+            option.addEventListener("click", () => {
+                if (option.dataset.payment === "COD") {
                     showPopup("Coming Soon", "This payment method is currently unavailable.", "info");
                     return;
                 }
 
-                document.querySelectorAll(".pay-option").forEach(el=>{
+                document.querySelectorAll(".pay-option").forEach(el => {
                     el.classList.remove("selected");
                     const indicator = el.querySelector('.indicator');
-                    if(indicator) indicator.style.border = "2px solid #ccc";
+                    if (indicator) indicator.style.border = "2px solid #ccc";
                 });
 
                 option.classList.add("selected");
                 const indicator = option.querySelector('.indicator');
-                if(indicator) indicator.style.border = "6px solid var(--primary)";
+                if (indicator) indicator.style.border = "6px solid var(--primary)";
                 
-                selectedPayment=option.dataset.payment;
+                selectedPayment = option.dataset.payment;
 
-                // Show/Hide UPI Details
-                if(selectedPayment === "UPI"){
+                if (selectedPayment === "UPI") {
                     document.getElementById("upiSection").style.display = "block";
                 } else {
                     document.getElementById("upiSection").style.display = "none";
@@ -249,94 +261,206 @@
 
         async function placeOrder() {
             if (!currentProduct) {
-                showPopup("Product Not Loaded", "Please wait while the product is loading.", "error");
+                showPopup("Product Not Loaded", "Please wait while product details load.", "error");
                 return;
             }
 
             const userId = localStorage.getItem("userId");
-            if (!userId) {
-                showPopup("Login Required", "Please login to continue.", "error");
+            if (!userId || userId === "guest") {
+                showPopup("Login Required", "Please login to place an order.", "error");
                 return;
             }
 
-            // --- SMART BALANCE FLOW ---
+            const customerName = document.getElementById("customerName").value.trim();
+            const customerPhone = document.getElementById("customerPhone").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const city = document.getElementById("city").value.trim();
+            const state = document.getElementById("state").value.trim();
+            const pincode = document.getElementById("pincode").value.trim();
+            const btn = document.getElementById("placeOrderBtn");
+
+            // --- 1. SMART BALANCE FLOW ---
             if (selectedPayment === "Smart Balance") {
-                const { data:user, error:balanceError } = await client.from("users").select("smart_balance").eq("id", userId).single();
-                if (balanceError) return showPopup("Balance Error", "Unable to fetch your Smart Balance.", "error");
+                btn.disabled = true;
+                btn.innerText = "Processing Order...";
 
-                const balance = Number(user.smart_balance || 0);
-                const orderAmount = Number(currentProduct.price);
+                try {
+                    const { data: user, error: balanceError } = await client
+                        .from("users")
+                        .select("smart_balance")
+                        .eq("id", userId)
+                        .single();
 
-                if (balance < orderAmount) return showPopup("Insufficient Balance", "Your Smart Balance is too low.", "warning");
+                    if (balanceError || !user) {
+                        showPopup("Balance Error", "Unable to fetch your Smart Balance.", "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
 
-                const { error:deductError } = await client.from("users").update({ smart_balance: balance - orderAmount }).eq("id", userId);
-                if (deductError) return showPopup("Transaction Failed", "Unable to deduct Smart Balance.", "error");
+                    const balance = Number(user.smart_balance || 0);
+                    const orderAmount = Number(currentProduct.price || 0);
 
-                const {error} = await client.from("orders").insert([{
-                    user_id:userId, product_id:currentProduct.id, product_name:currentProduct.name,
-                    product_image:currentProduct.singleImageUrl, quantity:1, price:currentProduct.price,
-                    total_amount:currentProduct.price, customer_name:document.getElementById("customerName").value.trim(),
-                    customer_phone:document.getElementById("customerPhone").value.trim(), address:document.getElementById("address").value.trim(),
-                    city:document.getElementById("city").value.trim(), state:document.getElementById("state").value.trim(),
-                    pincode:document.getElementById("pincode").value.trim(), payment_method:selectedPayment, order_status:"Pending"
-                }]);
+                    if (balance < orderAmount) {
+                        showPopup("Insufficient Balance", "Your Smart Balance is too low. Please add money.", "warning");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
 
-                if (error) return showPopup("Order Failed", error.message, "error");
-                document.getElementById("successPopup").style.display="flex";
+                    // Deduct balance from users table
+                    const { error: deductError } = await client
+                        .from("users")
+                        .update({ smart_balance: balance - orderAmount })
+                        .eq("id", userId);
+
+                    if (deductError) {
+                        showPopup("Transaction Failed", "Unable to deduct Smart Balance.", "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
+
+                    // Insert Order Record
+                    const { error: orderError } = await client.from("orders").insert([{
+                        user_id: userId,
+                        product_id: currentProduct.id,
+                        product_name: currentProduct.name,
+                        product_image: currentProduct.singleImageUrl,
+                        quantity: 1,
+                        price: currentProduct.price,
+                        total_amount: currentProduct.price,
+                        customer_name: customerName,
+                        customer_phone: customerPhone,
+                        address: address,
+                        city: city,
+                        state: state,
+                        pincode: pincode,
+                        payment_method: "Smart Balance",
+                        order_status: "Pending"
+                    }]);
+
+                    if (orderError) {
+                        showPopup("Order Failed", orderError.message, "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
+
+                    document.getElementById("successHeading").innerText = "Order Placed!";
+                    document.getElementById("successDesc").innerText = "Payment deducted via Smart Balance. Your order status is Pending.";
+                    document.getElementById("successPopup").style.display = "flex";
+
+                } catch (e) {
+                    showPopup("Error", e.message || "Failed to process order.", "error");
+                    btn.disabled = false;
+                    btn.innerText = "Confirm & Place Order";
+                }
             } 
-            
-            // --- UPI VERIFICATION FLOW (FIXED AJAX CALL) ---
+        // --- 2. UPI PAYMENT FLOW (Manual Verification via wallet_requests table) ---
             else if (selectedPayment === "UPI") {
                 const utr = document.getElementById("utrInput").value.trim();
                 if (!utr || utr.length < 10) {
-                    showPopup("Invalid UTR", "Please enter a valid UTR reference number.", "warning");
+                    showPopup("Invalid UTR", "Please enter a valid 12-digit UTR reference number.", "warning");
                     return;
                 }
 
-                // 1. Build the data payload
-                const payload = {
-                    user_id: userId,
-                    product_id: currentProduct.id,
-                    utr: utr,
-                    customer_name: document.getElementById("customerName").value.trim(),
-                    customer_phone: document.getElementById("customerPhone").value.trim(),
-                    address: document.getElementById("address").value.trim(),
-                    city: document.getElementById("city").value.trim(),
-                    state: document.getElementById("state").value.trim(),
-                    pincode: document.getElementById("pincode").value.trim(),
-                    payment_method: "UPI"
-                };
+                btn.disabled = true;
+                btn.innerText = "Submitting Details...";
 
-                // 2. Show loading popup so user stays on the page
-                showPopup("Processing", "Please wait while we securely verify your payment with BharatPe...", "info");
-                
-                // 3. Send API request securely in the background
                 try {
-                    const response = await fetch("https://api99.site.je/process-order.php", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(payload)
-                    });
+                    // Check duplicate UTR in wallet_requests table
+                    const { data: existingUtr } = await client
+                        .from("wallet_requests")
+                        .select("id")
+                        .eq("utr", utr);
 
-                    const result = await response.json();
-
-                    // 4. Handle success or failure seamlessly
-                    if (result.status === true) {
-                        // If backend verified it successfully, show the final success popup
-                        document.getElementById("successPopup").style.display = "flex";
-                    } else {
-                        // If it failed (e.g. Invalid UTR, Duplicate, or Mismatch), show error in popup
-                        showPopup("Verification Failed", result.message, "error");
+                    if (existingUtr && existingUtr.length > 0) {
+                        showPopup("Duplicate UTR", "This UTR number has already been submitted.", "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
                     }
-                } catch (error) {
-                    showPopup("Network Error", "Unable to connect to the verification server. Please try again.", "error");
+
+                    // 1. Insert into wallet_requests (user_id, amount, utr, status)
+                    const { error: walletReqError } = await client
+                        .from("wallet_requests")
+                        .insert([{
+                            user_id: userId,
+                            amount: Number(currentProduct.price || 0),
+                            utr: utr,
+                            status: "Pending"
+                        }]);
+
+                    if (walletReqError) {
+                        showPopup("Request Failed", walletReqError.message, "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
+
+                    // 2. Insert into orders table with status Pending
+                    const { error: orderError } = await client
+                        .from("orders")
+                        .insert([{
+                            user_id: userId,
+                            product_id: currentProduct.id,
+                            product_name: currentProduct.name,
+                            product_image: currentProduct.singleImageUrl,
+                            quantity: 1,
+                            price: currentProduct.price,
+                            total_amount: currentProduct.price,
+                            customer_name: customerName,
+                            customer_phone: customerPhone,
+                            address: address,
+                            city: city,
+                            state: state,
+                            pincode: pincode,
+                            payment_method: "UPI",
+                            order_status: "Pending",
+                            utr: utr
+                        }]);
+
+                    if (orderError) {
+                        showPopup("Order Record Failed", orderError.message, "error");
+                        btn.disabled = false;
+                        btn.innerText = "Confirm & Place Order";
+                        return;
+                    }
+
+                    document.getElementById("successHeading").innerText = "Order & Payment Submitted!";
+                    document.getElementById("successDesc").innerText = "Your payment UTR and order details have been submitted. Once verified by admin, your order will be approved.";
+                    document.getElementById("successPopup").style.display = "flex";
+
+                } catch (e) {
+                    showPopup("Submission Failed", "Could not submit order details. Please try again.", "error");
+                    btn.disabled = false;
+                    btn.innerText = "Confirm & Place Order";
                 }
             }
         }
 
-        function goOrders(){ window.location.href="orders.html"; }
+        function goOrders() { 
+            window.location.href = "orders.html"; 
+        }
 
-        async function loadUserAddress(){
-            const userId = localStorage.getItem("u
+        async function loadUserAddress() {
+            const userId = localStorage.getItem("userId");
+            if (!userId || userId === "guest") return;
+
+            const { data, error } = await client.from("addresses").select("*").eq("user_id", userId).single();
+            if (error || !data) return;
+
+            document.getElementById("customerName").value = data.full_name || "";
+            document.getElementById("customerPhone").value = data.phone || "";
+            document.getElementById("address").value = data.address || "";
+            document.getElementById("city").value = data.city || "";
+            document.getElementById("state").value = data.state || "";
+            document.getElementById("pincode").value = data.pincode || "";
+        }
+        
+        loadProduct();
+        loadUserAddress();
+    </script>
+</body>
+</html>
