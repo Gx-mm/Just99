@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Add Product - 99Shops</title>
+<title>Add Product - Trendify</title>
 <link rel="stylesheet" href="popup.css">
 <script src="popup.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,7 +30,8 @@
     border: 1px solid var(--border);
   }
   
-  h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 24px; }
+  h1 { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+  .brand-tag { font-size: 14px; background: #fee2e2; color: #ee1c25; padding: 4px 10px; border-radius: 8px; font-weight: 800; }
   
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .full-width { grid-column: span 2; }
@@ -135,7 +136,7 @@
 <body>
 <div class="container">
   <div class="card">
-    <h1>Add Product</h1>
+    <h1>Add Product <span class="brand-tag">Trendify</span></h1>
     <form id="productForm">
       <div class="form-grid">
         <div class="full-width">
@@ -150,7 +151,7 @@
 
         <div>
           <label>Brand</label>
-          <input id="brand" placeholder="Brand Name">
+          <input id="brand" placeholder="Brand Name" value="Trendify">
         </div>
 
         <div class="full-width">
@@ -160,17 +161,22 @@
 
         <div>
           <label>Price (₹)</label>
-          <input id="price" type="number" required>
+          <input id="price" type="number" placeholder="Selling Price e.g. 499" required>
         </div>
 
         <div>
-          <label>Old Price (₹)</label>
-          <input id="old_price" type="number">
+          <label>Old Price / MRP (₹)</label>
+          <input id="old_price" type="number" placeholder="MRP e.g. 999">
         </div>
 
         <div>
           <label>Discount (%)</label>
-          <input id="discount" type="number">
+          <input id="discount" type="number" placeholder="Auto calculated or manual">
+        </div>
+
+        <div>
+          <label>Delivery Charge (₹)</label>
+          <input id="delivery_charge" type="number" placeholder="e.g. 49 or 0 (Free)">
         </div>
 
         <div>
@@ -240,8 +246,26 @@ const addNewBtn = document.getElementById("addNewBtn");
 const previewContainer = document.getElementById("previewContainer");
 const badge = document.getElementById("imageCountBadge");
 
+const priceInput = document.getElementById("price");
+const oldPriceInput = document.getElementById("old_price");
+const discountInput = document.getElementById("discount");
+
 let uploadedUrls = [];
 const MAX_IMAGES = 20;
+
+// Auto Calculate Discount %
+function calculateDiscount() {
+  const price = parseFloat(priceInput.value);
+  const oldPrice = parseFloat(oldPriceInput.value);
+
+  if (!isNaN(price) && !isNaN(oldPrice) && oldPrice > price && oldPrice > 0) {
+    const calc = Math.round(((oldPrice - price) / oldPrice) * 100);
+    discountInput.value = calc;
+  }
+}
+
+priceInput.addEventListener("input", calculateDiscount);
+oldPriceInput.addEventListener("input", calculateDiscount);
 
 // Get URL Handler
 getUrlBtn.onclick = async () => {
@@ -336,11 +360,12 @@ document.getElementById("productForm").onsubmit = async (e) => {
     price: Number(document.getElementById("price").value),
     old_price: Number(document.getElementById("old_price").value || 0),
     discount: Number(document.getElementById("discount").value || 0),
+    delivery_charge: Number(document.getElementById("delivery_charge").value || 0),
     brand: document.getElementById("brand").value,
     category: document.getElementById("category").value,
     stock: Number(document.getElementById("stock").value || 0),
     rating: Number(document.getElementById("rating").value || 0),
-    thumbnail: thumb.value, // Stores "url1, url2, url3"
+    thumbnail: thumb.value,
     status: document.getElementById("status").value,
     featured: document.getElementById("featured").value === "true"
   };
