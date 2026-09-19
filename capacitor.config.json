@@ -1,10 +1,9 @@
 {
-  "appId": "com.mywebsite.app",
-  "appName": "My App",
+  "appId": "com.trendify.app",
+  "appName": "Trendify",
   "webDir": "www",
   "server": {
-    "url": "https://shop-99.vercel.app",
-    "cleartext": false
+    "url": "https://trendify.site.je",
+    "cleartext": true
   }
 }
-
