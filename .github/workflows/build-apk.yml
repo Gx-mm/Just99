@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Trendify APK
 
 on:
   push:
@@ -30,16 +30,26 @@ jobs:
           mkdir -p www
           touch www/index.html
           npx cap add android
+          
+          # App Icon Setup (Aapka appicon.png use karega)
+          mkdir -p assets
+          cp appicon.png assets/icon.png || echo "Icon not found, using default"
+          npx @capacitor/assets generate --android
+          
           npx cap sync android
 
-      - name: Build Debug APK
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK File
+      - name: Rename APK to Trendify.apk
+        run: |
+          mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Trendify.apk
+
+      - name: Upload ZIP Artifact (Trendify.zip)
         uses: actions/upload-artifact@v4
         with:
-          name: my-android-app
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Trendify
+          path: android/app/build/outputs/apk/debug/Trendify.apk
