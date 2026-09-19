@@ -1,10 +1,11 @@
 {
-  "name": "vercel-to-app",
+  "name": "trendify-app",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@capacitor/core": "^6.0.0",
     "@capacitor/android": "^6.0.0",
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/assets": "^3.0.5"
   }
 }
