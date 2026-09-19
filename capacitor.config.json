@@ -1,0 +1,10 @@
+{
+  "appId": "com.mywebsite.app",
+  "appName": "My App",
+  "webDir": "www",
+  "server": {
+    "url": "https://shop-99.vercel.app",
+    "cleartext": false
+  }
+}
+
