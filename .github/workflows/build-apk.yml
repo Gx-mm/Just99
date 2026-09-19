@@ -2,8 +2,8 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ] # aapki branch ka naam jo bhi ho
-  workflow_dispatch: # Taaki aap manual button click se bhi run kar sakein
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,9 +24,6 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Prepare Workspace & Add Android
         run: |
           npm install
@@ -46,4 +43,3 @@ jobs:
         with:
           name: my-android-app
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          
